@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	k "server/internal"
 )
 
 func hello(w http.ResponseWriter, r *http.Request) {
@@ -13,10 +12,6 @@ func hello(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "%v: %v\n", name, h)
 		}
 	}
-	b := k.Board{BoardSize: 10, Board: [][]k.Cell{}}
-	b.BoardSize = 10
-	b.GenerateEmptyBoard()
-	fmt.Printf("%+v", b.Board)
 	fmt.Fprintf(w, "Hello World\n")
 }
 
