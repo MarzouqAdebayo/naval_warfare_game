@@ -1,7 +1,7 @@
 package game
 
 type Cell struct {
-	Position Position
+	Position Coordinates
 	State    CellState
 }
 
@@ -28,7 +28,7 @@ func GenerateEmptyBoard(size int) *Board {
 	for i := range size {
 		board.Board[i] = make([]Cell, size)
 		for j := range size {
-			board.Board[i][j] = Cell{Position: Position{X: i, Y: j}, State: Empty}
+			board.Board[i][j] = Cell{Position: Coordinates{X: i, Y: j}, State: Empty}
 		}
 	}
 

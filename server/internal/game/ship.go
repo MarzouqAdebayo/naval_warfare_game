@@ -10,7 +10,7 @@ const (
 	Destroyer  ShipType = "Destroyer"
 )
 
-type Position struct {
+type Coordinates struct {
 	X int
 	Y int
 }
@@ -25,7 +25,7 @@ const (
 type Ship struct {
 	Type      ShipType
 	Size      int
-	Positions []Position
+	Positions []Coordinates
 	Hits      uint8
 	Sunk      bool
 }
