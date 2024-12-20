@@ -2,6 +2,8 @@ package game
 
 import (
 	"errors"
+	"fmt"
+	"math/rand/v2"
 )
 
 type Player struct {
@@ -14,8 +16,32 @@ type Player struct {
 var ErrCannotPlaceShip = errors.New("cannot place ship in this position")
 var ErrShipCollision = errors.New("there is a collision in this position")
 
-func (p *Player) GenerateShips() {}
-func (p *Player) PlaceShips(ship *Ship, startPos Coordinates, axis Axis) error {
+func (p *Player) GenerateAndPlaceShips() {
+	// FIXME Due to the size of the ship, board size cannot
+	// BUG be less than 5, or else and infinite loop occurs
+	if p.Board.Size < 5 {
+		return
+	}
+	ships := InitializeShips()
+	axes := [2]Axis{X, Y}
+
+	// Using brute force method lol
+	for _, ship := range ships {
+		for {
+			randomStartPos := Coordinates{X: rand.IntN(p.Board.Size), Y: rand.IntN(p.Board.Size)}
+			randomAxis := axes[rand.IntN(2)]
+
+			fmt.Println(randomStartPos, randomAxis)
+
+			err := p.PlaceShip(&ship, randomStartPos, randomAxis)
+			if err == nil {
+				break
+			}
+		}
+	}
+}
+
+func (p *Player) PlaceShip(ship *Ship, startPos Coordinates, axis Axis) error {
 	positions, err := p.getShipCoordinates(ship.Size, startPos, axis)
 	if err != nil {
 		return err
