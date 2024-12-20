@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -11,7 +12,7 @@ func TestPlaceShips(t *testing.T) {
 		player := &Player{}
 		player.Board = GenerateEmptyBoard(boardSize)
 		ship := &Ship{Type: Destroyer, Size: shipSize}
-		err := player.PlaceShips(ship, Coordinates{X: 0, Y: 0}, X)
+		err := player.PlaceShip(ship, Coordinates{X: 0, Y: 0}, X)
 		if err != nil {
 			t.Errorf("%v", err)
 		} else {
@@ -29,7 +30,7 @@ func TestPlaceShips(t *testing.T) {
 		player := &Player{}
 		player.Board = GenerateEmptyBoard(boardSize)
 		ship := &Ship{Type: Destroyer, Size: shipSize}
-		err := player.PlaceShips(ship, Coordinates{X: 0, Y: 3}, Y)
+		err := player.PlaceShip(ship, Coordinates{X: 0, Y: 3}, Y)
 		if err != nil {
 			t.Errorf("%v", err)
 		} else {
@@ -47,9 +48,27 @@ func TestPlaceShips(t *testing.T) {
 		player := &Player{}
 		player.Board = GenerateEmptyBoard(boardSize)
 		ship := &Ship{Type: Destroyer, Size: shipSize}
-		err := player.PlaceShips(ship, Coordinates{X: 3, Y: 0}, Y)
+		err := player.PlaceShip(ship, Coordinates{X: 3, Y: 0}, Y)
 
 		assertError(t, err, ErrCannotPlaceShip)
+
+		boardSize = 5
+		shipSize = 5
+		player = &Player{}
+		player.Board = GenerateEmptyBoard(boardSize)
+		ship = &Ship{Type: Destroyer, Size: shipSize}
+		err = player.PlaceShip(ship, Coordinates{X: 0, Y: 3}, X)
+
+		assertError(t, err, ErrCannotPlaceShip)
+	})
+}
+
+func TestGenerateAndPlaceShips(t *testing.T) {
+	t.Run("should randomly place ships on board", func(t *testing.T) {
+		boardSize := 5
+		player := &Player{}
+		player.Board = GenerateEmptyBoard(boardSize)
+		player.GenerateAndPlaceShips()
 	})
 }
 
