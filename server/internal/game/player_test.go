@@ -1,7 +1,6 @@
 package game
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -12,12 +11,12 @@ func TestPlaceShips(t *testing.T) {
 		player := &Player{}
 		player.Board = GenerateEmptyBoard(boardSize)
 		ship := &Ship{Type: Destroyer, Size: shipSize}
-		err := player.PlaceShip(ship, Coordinates{X: 0, Y: 0}, X)
+		err := player.PlaceShip(ship, Position{X: 0, Y: 0}, X)
 		if err != nil {
 			t.Errorf("%v", err)
 		} else {
 			for i := range shipSize {
-				if player.Board.Board[0][i].State != HasShip {
+				if player.Board.Squares[0][i].State != HasShip {
 					t.Errorf("Cell %d %d should contain Ship", 0, i)
 				}
 			}
@@ -30,12 +29,12 @@ func TestPlaceShips(t *testing.T) {
 		player := &Player{}
 		player.Board = GenerateEmptyBoard(boardSize)
 		ship := &Ship{Type: Destroyer, Size: shipSize}
-		err := player.PlaceShip(ship, Coordinates{X: 0, Y: 3}, Y)
+		err := player.PlaceShip(ship, Position{X: 0, Y: 3}, Y)
 		if err != nil {
 			t.Errorf("%v", err)
 		} else {
 			for i := range shipSize {
-				if player.Board.Board[i][3].State != HasShip {
+				if player.Board.Squares[i][3].State != HasShip {
 					t.Errorf("Cell %d %d should contain Ship", i, 3)
 				}
 			}
@@ -48,7 +47,7 @@ func TestPlaceShips(t *testing.T) {
 		player := &Player{}
 		player.Board = GenerateEmptyBoard(boardSize)
 		ship := &Ship{Type: Destroyer, Size: shipSize}
-		err := player.PlaceShip(ship, Coordinates{X: 3, Y: 0}, Y)
+		err := player.PlaceShip(ship, Position{X: 3, Y: 0}, Y)
 
 		assertError(t, err, ErrCannotPlaceShip)
 
@@ -57,7 +56,7 @@ func TestPlaceShips(t *testing.T) {
 		player = &Player{}
 		player.Board = GenerateEmptyBoard(boardSize)
 		ship = &Ship{Type: Destroyer, Size: shipSize}
-		err = player.PlaceShip(ship, Coordinates{X: 0, Y: 3}, X)
+		err = player.PlaceShip(ship, Position{X: 0, Y: 3}, X)
 
 		assertError(t, err, ErrCannotPlaceShip)
 	})

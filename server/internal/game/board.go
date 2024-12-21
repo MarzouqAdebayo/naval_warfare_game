@@ -1,7 +1,7 @@
 package game
 
 type Cell struct {
-	Position Coordinates
+	Position Position
 	State    CellState
 }
 
@@ -15,20 +15,21 @@ const (
 )
 
 type Board struct {
-	Size  int
-	Board [][]Cell
+	Size    int
+	Squares [][]Cell
 }
 
+// Generates an empty board
 func GenerateEmptyBoard(size int) *Board {
 	board := &Board{
-		Size:  size,
-		Board: make([][]Cell, size),
+		Size:    size,
+		Squares: make([][]Cell, size),
 	}
 
 	for i := range size {
-		board.Board[i] = make([]Cell, size)
+		board.Squares[i] = make([]Cell, size)
 		for j := range size {
-			board.Board[i][j] = Cell{Position: Coordinates{X: i, Y: j}, State: Empty}
+			board.Squares[i][j] = Cell{Position: Position{X: i, Y: j}, State: Empty}
 		}
 	}
 

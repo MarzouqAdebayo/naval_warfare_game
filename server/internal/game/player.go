@@ -2,14 +2,14 @@ package game
 
 import (
 	"errors"
-	"fmt"
 	"math/rand/v2"
 )
 
 type Player struct {
+	ID             string
 	Board          *Board
 	Ships          []Ship
-	Shotsfired     []Coordinates
+	Shotsfired     []Position
 	RemainingShips int
 }
 
@@ -28,10 +28,8 @@ func (p *Player) GenerateAndPlaceShips() {
 	// Using brute force method lol
 	for _, ship := range ships {
 		for {
-			randomStartPos := Coordinates{X: rand.IntN(p.Board.Size), Y: rand.IntN(p.Board.Size)}
+			randomStartPos := Position{X: rand.IntN(p.Board.Size), Y: rand.IntN(p.Board.Size)}
 			randomAxis := axes[rand.IntN(2)]
-
-			fmt.Println(randomStartPos, randomAxis)
 
 			err := p.PlaceShip(&ship, randomStartPos, randomAxis)
 			if err == nil {
@@ -41,7 +39,7 @@ func (p *Player) GenerateAndPlaceShips() {
 	}
 }
 
-func (p *Player) PlaceShip(ship *Ship, startPos Coordinates, axis Axis) error {
+func (p *Player) PlaceShip(ship *Ship, startPos Position, axis Axis) error {
 	positions, err := p.getShipCoordinates(ship.Size, startPos, axis)
 	if err != nil {
 		return err
@@ -51,39 +49,39 @@ func (p *Player) PlaceShip(ship *Ship, startPos Coordinates, axis Axis) error {
 	p.Ships = append(p.Ships, *ship)
 
 	for _, pos := range positions {
-		p.Board.Board[pos.X][pos.Y].State = HasShip
+		p.Board.Squares[pos.X][pos.Y].State = HasShip
 	}
 	return nil
 }
 
-func (p *Player) getShipCoordinates(shipSize int, startPos Coordinates, axis Axis) ([]Coordinates, error) {
+func (p *Player) getShipCoordinates(shipSize int, startPos Position, axis Axis) ([]Position, error) {
 	pos := calculateShipPositions(shipSize, startPos, axis)
 
 	for _, pos := range pos {
 		if pos.X < 0 || pos.X >= p.Board.Size || pos.Y < 0 || pos.Y >= p.Board.Size {
 			return nil, ErrCannotPlaceShip
-
 		}
-		if p.Board.Board[pos.X][pos.Y].State != Empty {
+		if p.Board.Squares[pos.X][pos.Y].State != Empty {
 			return nil, ErrShipCollision
 		}
 	}
 	return pos, nil
 }
 
-func calculateShipPositions(shipSize int, startPos Coordinates, axis Axis) []Coordinates {
-	positions := make([]Coordinates, shipSize)
+func calculateShipPositions(shipSize int, startPos Position, axis Axis) []Position {
+	positions := make([]Position, shipSize)
 
 	for i := range shipSize {
 		if axis == X {
-			positions[i] = Coordinates{X: startPos.X, Y: startPos.Y + i}
+			positions[i] = Position{X: startPos.X, Y: startPos.Y + i}
 		} else {
-			positions[i] = Coordinates{X: startPos.X + i, Y: startPos.Y}
+			positions[i] = Position{X: startPos.X + i, Y: startPos.Y}
 		}
 	}
 
 	return positions
 }
 
-func (p *Player) Attack() {}
+func (p *Player) Attack(attackCoordinates Position) {}
+
 func (p *Player) Defend() {}

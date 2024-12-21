@@ -10,7 +10,7 @@ const (
 	Destroyer  ShipType = "Destroyer"
 )
 
-type Coordinates struct {
+type Position struct {
 	X int
 	Y int
 }
@@ -25,11 +25,12 @@ const (
 type Ship struct {
 	Type      ShipType
 	Size      int
-	Positions []Coordinates
+	Positions []Position
 	Hits      uint8
 	Sunk      bool
 }
 
+// Initialize ships for a new game
 func InitializeShips() []Ship {
 	return []Ship{
 		{Type: Carrier, Size: 5, Hits: 0, Sunk: false},

@@ -12,10 +12,10 @@ func TestGenerateEmptyBoard(t *testing.T) {
 		if board_test.Size != boardSize {
 			t.Errorf("board size is expected to be %v got %v", boardSize, board_test.Size)
 		}
-		if len(board_test.Board) != boardSize {
+		if len(board_test.Squares) != boardSize {
 			t.Errorf("board length is expected to be %v got %v", boardSize, board_test.Size)
 		}
-		for idxi, i := range board_test.Board {
+		for idxi, i := range board_test.Squares {
 			for idxj, j := range i {
 				if j.State != Empty {
 					t.Errorf("cell (%v, %v) is expected to be %s", idxi, idxj, Empty)
