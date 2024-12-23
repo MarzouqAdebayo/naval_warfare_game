@@ -81,7 +81,3 @@ func calculateShipPositions(shipSize int, startPos Position, axis Axis) []Positi
 
 	return positions
 }
-
-func (p *Player) Attack(attackCoordinates Position) {}
-
-func (p *Player) Defend() {}
