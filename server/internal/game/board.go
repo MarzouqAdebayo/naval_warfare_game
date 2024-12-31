@@ -26,9 +26,9 @@ func GenerateEmptyBoard(size int) *Board {
 		Squares: make([][]Cell, size),
 	}
 
-	for i := range size {
+	for i := 0; i < size; i++ {
 		board.Squares[i] = make([]Cell, size)
-		for j := range size {
+		for j := 0; j < size; j++ {
 			board.Squares[i][j] = Cell{Position: Position{X: i, Y: j}, State: Empty}
 		}
 	}
