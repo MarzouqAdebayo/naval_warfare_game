@@ -8,7 +8,7 @@ func TestPlaceShips(t *testing.T) {
 	t.Run("should set ship on board horizontally", func(t *testing.T) {
 		boardSize := 4
 		shipSize := 4
-		player := &Player{}
+		player := &PlayerGameStruct{}
 		player.Board = GenerateEmptyBoard(boardSize)
 		ship := &Ship{Type: Destroyer, Size: shipSize}
 		err := player.PlaceShip(ship, Position{X: 0, Y: 0}, X)
@@ -26,7 +26,7 @@ func TestPlaceShips(t *testing.T) {
 	t.Run("should set ship on board vertically", func(t *testing.T) {
 		boardSize := 4
 		shipSize := 4
-		player := &Player{}
+		player := &PlayerGameStruct{}
 		player.Board = GenerateEmptyBoard(boardSize)
 		ship := &Ship{Type: Destroyer, Size: shipSize}
 		err := player.PlaceShip(ship, Position{X: 0, Y: 3}, Y)
@@ -44,7 +44,7 @@ func TestPlaceShips(t *testing.T) {
 	t.Run("should return error if ship cannot be placed on board", func(t *testing.T) {
 		boardSize := 5
 		shipSize := 5
-		player := &Player{}
+		player := &PlayerGameStruct{}
 		player.Board = GenerateEmptyBoard(boardSize)
 		ship := &Ship{Type: Destroyer, Size: shipSize}
 		err := player.PlaceShip(ship, Position{X: 3, Y: 0}, Y)
@@ -53,7 +53,7 @@ func TestPlaceShips(t *testing.T) {
 
 		boardSize = 5
 		shipSize = 5
-		player = &Player{}
+		player = &PlayerGameStruct{}
 		player.Board = GenerateEmptyBoard(boardSize)
 		ship = &Ship{Type: Destroyer, Size: shipSize}
 		err = player.PlaceShip(ship, Position{X: 0, Y: 3}, X)
@@ -65,7 +65,7 @@ func TestPlaceShips(t *testing.T) {
 func TestGenerateAndPlaceShips(t *testing.T) {
 	t.Run("should randomly place ships on board", func(t *testing.T) {
 		boardSize := 5
-		player := &Player{}
+		player := &PlayerGameStruct{}
 		player.Board = GenerateEmptyBoard(boardSize)
 		player.GenerateAndPlaceShips()
 	})

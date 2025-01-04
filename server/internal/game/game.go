@@ -18,12 +18,12 @@ func (g GameMode) String() string {
 	return GameModeName[g]
 }
 
-type Game struct {
-	Players     [2]*Player
+type BattleshipGame struct {
+	Players     [2]*PlayerGameStruct
 	CurrentTurn int
 	GameOver    bool
 	Mode        GameMode
-	Winner      *Player
+	Winner      *PlayerGameStruct
 }
 
 var ErrNotPlayerTurn = errors.New("it is not your turn yet")
@@ -31,16 +31,17 @@ var ErrPositionIsAttacked = errors.New("this position has already been attacked"
 var ErrGameOver = errors.New("this game is over")
 
 // Starts a new game of Naval Warfare
-func NewGame(boardSize int) *Game {
-	game := &Game{
-		Players:     [2]*Player{},
+func NewBattleshipGame(boardSize int) *BattleshipGame {
+	game := &BattleshipGame{
+		Players:     [2]*PlayerGameStruct{},
 		CurrentTurn: 0,
 		GameOver:    false,
 	}
 
 	for i := range 2 {
 		initialShips := InitializeShips()
-		game.Players[i] = &Player{
+		game.Players[i] = &PlayerGameStruct{
+			Index:          i,
 			Board:          GenerateEmptyBoard(boardSize),
 			Ships:          initialShips,
 			RemainingShips: len(initialShips),
@@ -51,7 +52,7 @@ func NewGame(boardSize int) *Game {
 }
 
 // Attacks a position on the opponents board
-func (game *Game) Attack(attackerIndex int, targetCoordinates Position) (bool, error) {
+func (game *BattleshipGame) Attack(attackerIndex int, targetCoordinates Position) (bool, error) {
 	if game.GameOver {
 		return false, ErrGameOver
 	}

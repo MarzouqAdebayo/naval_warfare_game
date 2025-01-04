@@ -7,11 +7,11 @@ import (
 
 var boardSize int
 var shipSize int
-var player1 *Player
+var player1 *PlayerGameStruct
 var player1ship *Ship
-var player2 *Player
+var player2 *PlayerGameStruct
 var player2ship *Ship
-var game *Game
+var game *BattleshipGame
 
 // func TestMain(m *testing.M) {
 // 	setup()
@@ -23,18 +23,18 @@ func setup() func() {
 	boardSize = 4
 	shipSize = 4
 
-	player1 = &Player{ID: "a", RemainingShips: 1}
+	player1 = &PlayerGameStruct{Index: 0, RemainingShips: 1}
 	player1.Board = GenerateEmptyBoard(boardSize)
 	player1ship = &Ship{Type: Destroyer, Size: shipSize}
 	player1.PlaceShip(player1ship, Position{X: 0, Y: 0}, X)
 
-	player2 = &Player{ID: "b", RemainingShips: 1}
+	player2 = &PlayerGameStruct{Index: 1, RemainingShips: 1}
 	player2.Board = GenerateEmptyBoard(boardSize)
 	player2ship = &Ship{Type: Destroyer, Size: shipSize}
 	player2.PlaceShip(player2ship, Position{X: 0, Y: 0}, Y)
 
-	game = &Game{
-		Players: [2]*Player{player1, player2},
+	game = &BattleshipGame{
+		Players: [2]*PlayerGameStruct{player1, player2},
 		Mode:    SingleFire,
 	}
 	return func() {
@@ -72,7 +72,7 @@ func TestAttack(t *testing.T) {
 		_, err := game.Attack(0, target)
 
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 		}
 
 		if game.CurrentTurn != 1 {
@@ -80,8 +80,8 @@ func TestAttack(t *testing.T) {
 		}
 
 		defer setup()()
-		game = &Game{
-			Players:     [2]*Player{player1, player2},
+		game = &BattleshipGame{
+			Players:     [2]*PlayerGameStruct{player1, player2},
 			Mode:        ContinousFire,
 			CurrentTurn: 1,
 		}
@@ -98,7 +98,7 @@ func TestAttack(t *testing.T) {
 			_, err := game.Attack(0, target)
 
 			if err != nil {
-				t.Errorf(err.Error())
+				t.Error(err.Error())
 			}
 		}
 
@@ -129,7 +129,7 @@ func TestAttack(t *testing.T) {
 		}
 
 		if game.Winner != player1 {
-			t.Errorf("game winner is %p %s should be %p %s", game.Winner, game.Winner.ID, player1, player1.ID)
+			t.Errorf("game winner is %p %d should be %p %d", game.Winner, game.Winner.Index, player1, player1.Index)
 		}
 
 		result, err := game.Attack(game.CurrentTurn, Position{X: 0, Y: j})
@@ -147,7 +147,7 @@ func TestAttack(t *testing.T) {
 		result, err := game.Attack(0, target)
 
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 		}
 
 		if result {

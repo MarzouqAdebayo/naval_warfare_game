@@ -5,8 +5,8 @@ import (
 	"math/rand/v2"
 )
 
-type Player struct {
-	ID             string
+type PlayerGameStruct struct {
+	Index          int
 	Board          *Board
 	Ships          []Ship
 	Shotsfired     []Position
@@ -16,7 +16,7 @@ type Player struct {
 var ErrCannotPlaceShip = errors.New("cannot place ship in this position")
 var ErrShipCollision = errors.New("there is a collision in this position")
 
-func (p *Player) GenerateAndPlaceShips() {
+func (p *PlayerGameStruct) GenerateAndPlaceShips() {
 	// FIXME Due to the size of the ship, board size cannot
 	// BUG be less than 5, or else and infinite loop occurs
 	if p.Board.Size < 5 {
@@ -39,7 +39,7 @@ func (p *Player) GenerateAndPlaceShips() {
 	}
 }
 
-func (p *Player) PlaceShip(ship *Ship, startPos Position, axis Axis) error {
+func (p *PlayerGameStruct) PlaceShip(ship *Ship, startPos Position, axis Axis) error {
 	positions, err := p.getShipCoordinates(ship.Size, startPos, axis)
 	if err != nil {
 		return err
@@ -54,7 +54,7 @@ func (p *Player) PlaceShip(ship *Ship, startPos Position, axis Axis) error {
 	return nil
 }
 
-func (p *Player) getShipCoordinates(shipSize int, startPos Position, axis Axis) ([]Position, error) {
+func (p *PlayerGameStruct) getShipCoordinates(shipSize int, startPos Position, axis Axis) ([]Position, error) {
 	pos := calculateShipPositions(shipSize, startPos, axis)
 
 	for _, pos := range pos {
