@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+
+	g "server/internal/game"
 )
 
 // Message represents the structure of WebSocket messages
@@ -21,30 +23,38 @@ type Message struct {
 
 // Client represents a connected WebSocket client
 type Client struct {
-	ID       string
-	Hub      *Hub
-	Conn     *websocket.Conn
-	Send     chan []byte
+	id       string
+	hub      *Hub
+	gameroom *GameRoom
+	conn     *websocket.Conn
+	send     chan []byte
 	mu       sync.Mutex
-	IsAlive  bool
-	UserData map[string]interface{} // Store custom user data
-	LastPing time.Time
+	isAlive  bool
+	userData map[string]interface{} // Store custom user data
+	lastPing time.Time
+}
+
+// GameRoom represents the BattleshipGame with extra info
+type GameRoom struct {
+	clients []*Client
+	g.BattleshipGame
 }
 
 // Hub manages all connected clients
 type Hub struct {
-	LastID     int
-	Clients    map[string]*Client
-	Register   chan *Client
-	Unregister chan *Client
-	Broadcast  chan []byte
+	lastID     int
+	clients    map[string]*Client
+	rooms      []*GameRoom
+	register   chan *Client
+	unregister chan *Client
+	broadcast  chan []byte
 	mu         sync.RWMutex
-	// Config
-	Config struct {
-		PingInterval   time.Duration
-		PongWait       time.Duration
-		MaxMessageSize int64
-		WriteWait      time.Duration
+	// config
+	config struct {
+		pingInterval   time.Duration
+		pongWait       time.Duration
+		maxMessageSize int64
+		writeWait      time.Duration
 	}
 }
 
@@ -59,66 +69,99 @@ var upgrader = websocket.Upgrader{
 
 func NewHub() *Hub {
 	hub := &Hub{
-		LastID:     0,
-		Clients:    make(map[string]*Client),
-		Register:   make(chan *Client),
-		Unregister: make(chan *Client),
-		Broadcast:  make(chan []byte, 256),
+		lastID:     0,
+		clients:    make(map[string]*Client),
+		rooms:      make([]*GameRoom, 0),
+		register:   make(chan *Client),
+		unregister: make(chan *Client),
+		broadcast:  make(chan []byte, 256),
 	}
 
-	hub.Config.PingInterval = 30 * time.Second
-	hub.Config.PongWait = 60 * time.Second
-	hub.Config.MaxMessageSize = 512 * 1024 // 512KB
-	hub.Config.WriteWait = 10 * time.Second
+	hub.config.pingInterval = 30 * time.Second
+	hub.config.pongWait = 60 * time.Second
+	hub.config.maxMessageSize = 512 * 1024 // 512KB
+	hub.config.writeWait = 10 * time.Second
 
 	return hub
 }
+
+func (g *GameRoom) Broadcast(message []byte) {
+	switch "" {
+	case "start_game":
+		return
+	case "attack":
+		return
+	case "game_over":
+		return
+	}
+	for _, client := range g.clients {
+		if !client.isAlive {
+			continue
+		}
+		select {
+		case client.send <- message:
+		default:
+			close(client.send)
+			client.isAlive = false
+		}
+	}
+}
+
+func (h *Hub) None() {}
 
 func (h *Hub) Run() {
 	go h.periodicCleanup()
 
 	for {
 		select {
-		case client := <-h.Register:
+		case client := <-h.register:
 			h.mu.Lock()
-			h.Clients[client.ID] = client
+			h.clients[client.id] = client
 			h.mu.Unlock()
 
 			msg := Message{
-				Type:    "system",
-				Payload: fmt.Sprintf("User %s joined", client.ID),
+				Type:    "user_deets",
+				Payload: fmt.Sprintf("User-%s", client.id),
 			}
 			if msgBytes, err := json.Marshal(msg); err == nil {
-				h.Broadcast <- msgBytes
+				client.conn.WriteMessage(websocket.TextMessage, msgBytes)
 			}
 
-		case client := <-h.Unregister:
+			msg = Message{
+				Type:    "system",
+				Payload: fmt.Sprintf("User %s joined", client.id),
+			}
+			if msgBytes, err := json.Marshal(msg); err == nil {
+				h.broadcast <- msgBytes
+			}
+
+		case client := <-h.unregister:
 			h.mu.Lock()
-			if _, ok := h.Clients[client.ID]; ok {
-				delete(h.Clients, client.ID)
-				close(client.Send)
+			if _, ok := h.clients[client.id]; ok {
+				delete(h.clients, client.id)
+				close(client.send)
 
 				msg := Message{
 					Type:    "system",
-					Payload: fmt.Sprintf("User %s left", client.ID),
+					Payload: fmt.Sprintf("User %s left", client.id),
 				}
 				if msgBytes, err := json.Marshal(msg); err == nil {
-					h.Broadcast <- msgBytes
+					h.broadcast <- msgBytes
 				}
 			}
 			h.mu.Unlock()
 
-		case message := <-h.Broadcast:
+		case message := <-h.broadcast:
 			h.mu.RLock()
-			for _, client := range h.Clients {
-				if !client.IsAlive {
+			for _, client := range h.clients {
+				if !client.isAlive {
 					continue
 				}
 				select {
-				case client.Send <- message:
+				case client.send <- message:
 				default:
-					close(client.Send)
-					client.IsAlive = false
+					close(client.send)
+					client.isAlive = false
 				}
 			}
 			h.mu.RUnlock()
@@ -127,15 +170,15 @@ func (h *Hub) Run() {
 }
 
 func (h *Hub) periodicCleanup() {
-	ticker := time.NewTicker(h.Config.PingInterval)
+	ticker := time.NewTicker(h.config.pingInterval)
 	defer ticker.Stop()
 
 	for range ticker.C {
 		h.mu.Lock()
-		for id, client := range h.Clients {
-			if !client.IsAlive || time.Since(client.LastPing) > h.Config.PongWait {
+		for id, client := range h.clients {
+			if !client.isAlive || time.Since(client.lastPing) > h.config.pongWait {
 				log.Printf("Cleaning up inactive client: %s", id)
-				h.Unregister <- client
+				h.unregister <- client
 			}
 		}
 		h.mu.Unlock()
@@ -144,22 +187,22 @@ func (h *Hub) periodicCleanup() {
 
 func (c *Client) readPump() {
 	defer func() {
-		c.Hub.Unregister <- c
-		c.Conn.Close()
+		c.hub.unregister <- c
+		c.conn.Close()
 	}()
 
-	c.Conn.SetReadLimit(c.Hub.Config.MaxMessageSize)
-	c.Conn.SetReadDeadline(time.Now().Add(c.Hub.Config.PongWait))
-	c.Conn.SetPongHandler(func(string) error {
+	c.conn.SetReadLimit(c.hub.config.maxMessageSize)
+	c.conn.SetReadDeadline(time.Now().Add(c.hub.config.pongWait))
+	c.conn.SetPongHandler(func(string) error {
 		c.mu.Lock()
-		c.LastPing = time.Now()
+		c.lastPing = time.Now()
 		c.mu.Unlock()
-		c.Conn.SetReadDeadline(time.Now().Add(c.Hub.Config.PongWait))
+		c.conn.SetReadDeadline(time.Now().Add(c.hub.config.pongWait))
 		return nil
 	})
 
 	for {
-		_, message, err := c.Conn.ReadMessage()
+		_, message, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("error: %v", err)
@@ -175,47 +218,65 @@ func (c *Client) readPump() {
 
 		switch msg.Type {
 		case "private":
-			if targetClient, ok := c.Hub.Clients[msg.To]; ok {
-				msg.From = c.ID
+			if targetClient, ok := c.hub.clients[msg.To]; ok {
+				msg.From = c.id
 				if msgBytes, err := json.Marshal(msg); err == nil {
-					targetClient.Send <- msgBytes
+					targetClient.send <- msgBytes
+				}
+			}
+		case "find_game":
+			for _, room := range c.hub.rooms {
+				switch len(room.clients) {
+				case 0:
+					room.clients = append(room.clients, c)
+					break
+				case 1:
+					room.clients = append(room.clients, c)
+					room.BattleshipGame = *g.NewBattleshipGame(10)
+					room.Broadcast(message)
+					break
+				default:
+					newRoom := &GameRoom{
+						clients: make([]*Client, 0),
+					}
+					c.hub.rooms = append(c.hub.rooms, newRoom)
 				}
 			}
 		default:
-			msg.From = c.ID
+			msg.From = c.id
 			if msgBytes, err := json.Marshal(msg); err == nil {
-				c.Hub.Broadcast <- msgBytes
+				c.hub.broadcast <- msgBytes
 			}
 		}
 	}
 }
 
 func (c *Client) writePump() {
-	ticker := time.NewTicker(c.Hub.Config.PingInterval)
+	ticker := time.NewTicker(c.hub.config.pingInterval)
 	defer func() {
 		ticker.Stop()
-		c.Conn.Close()
+		c.conn.Close()
 	}()
 
 	for {
 		select {
-		case message, ok := <-c.Send:
-			c.Conn.SetWriteDeadline(time.Now().Add(c.Hub.Config.WriteWait))
+		case message, ok := <-c.send:
+			c.conn.SetWriteDeadline(time.Now().Add(c.hub.config.writeWait))
 			if !ok {
-				c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
+				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
 
-			w, err := c.Conn.NextWriter(websocket.TextMessage)
+			w, err := c.conn.NextWriter(websocket.TextMessage)
 			if err != nil {
 				return
 			}
 			w.Write(message)
 
-			n := len(c.Send)
+			n := len(c.send)
 			for i := 0; i < n; i++ {
 				w.Write([]byte{'\n'})
-				w.Write(<-c.Send)
+				w.Write(<-c.send)
 			}
 
 			if err := w.Close(); err != nil {
@@ -223,8 +284,8 @@ func (c *Client) writePump() {
 			}
 
 		case <-ticker.C:
-			c.Conn.SetWriteDeadline(time.Now().Add(c.Hub.Config.WriteWait))
-			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+			c.conn.SetWriteDeadline(time.Now().Add(c.hub.config.writeWait))
+			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return
 			}
 		}
@@ -240,18 +301,18 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 
 	hub.mu.Lock()
 	client := &Client{
-		ID:       fmt.Sprintf("%d", hub.LastID),
-		Hub:      hub,
-		Conn:     conn,
-		Send:     make(chan []byte, 256),
-		IsAlive:  true,
-		UserData: make(map[string]interface{}),
-		LastPing: time.Now(),
+		id:       fmt.Sprintf("%d", hub.lastID),
+		hub:      hub,
+		conn:     conn,
+		send:     make(chan []byte, 256),
+		isAlive:  true,
+		userData: make(map[string]interface{}),
+		lastPing: time.Now(),
 	}
-	hub.LastID++
+	hub.lastID++
 	hub.mu.Unlock()
 
-	client.Hub.Register <- client
+	client.hub.register <- client
 
 	go client.readPump()
 	go client.writePump()

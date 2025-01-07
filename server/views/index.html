@@ -9,6 +9,14 @@
         border: 1px solid #ccc;
         padding: 10px;
         margin-bottom: 10px;
+        position: relative;
+      }
+      #userid {
+        position: absolute;
+        color: #ee993b;
+        right: 10px;
+        top: 10px;
+        z-index: 50;
       }
       .system-message {
         color: #666;
@@ -23,7 +31,9 @@
     </style>
   </head>
   <body>
-    <div id="messages"></div>
+    <div id="messages">
+      <div id="userid"></div>
+    </div>
     <input type="text" id="messageInput" placeholder="Type a message..." />
     <input
       type="text"
@@ -37,6 +47,7 @@
       let ws;
       let reconnectAttempts = 0;
       let connected = false;
+      let tm;
       const maxReconnectAttempts = 5;
       const reconnectDelay = 3000;
 
@@ -49,6 +60,9 @@
 
         ws.onopen = function () {
           console.log("Connected to WebSocket");
+          if (tm) {
+            clearTimeout(tm);
+          }
           connected = true;
           reconnectAttempts = 0;
           appendMessage("System", "Connected to server", "system-message");
@@ -60,6 +74,9 @@
           console.log(message);
 
           switch (message.type) {
+            case "user_deets":
+              setUserDetails(message.payload);
+              return;
             case "system":
               className = "system-message";
               break;
@@ -70,7 +87,11 @@
               className = "";
           }
 
-          appendMessage(message.from || "System", message.payload, className);
+          appendMessage(
+            message.from ? `User-${message.from}` : "System",
+            message.payload,
+            className,
+          );
         };
 
         ws.onclose = function () {
@@ -83,9 +104,7 @@
               `Reconnecting... Attempt ${reconnectAttempts}`,
               "system-message",
             );
-            if (!connected) {
-              setTimeout(connect, reconnectDelay);
-            }
+            tm = setTimeout(connect, reconnectDelay);
           } else {
             appendMessage(
               "System",
@@ -122,6 +141,11 @@
 
         ws.send(JSON.stringify(message));
         messageInput.value = "";
+      }
+
+      function setUserDetails(username) {
+        const useridEl = document.getElementById("userid");
+        useridEl.textContent = `${username}`;
       }
 
       function appendMessage(from, content, className) {

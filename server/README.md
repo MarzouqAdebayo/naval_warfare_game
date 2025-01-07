@@ -9,8 +9,8 @@
 - ```bash
   go run main.go
   ```
-- Navigate to localhost:5000 in you browser to see the server in action
-- You can open other private browser window to simulate multiple clients
+- Navigate to localhost:5000 in your browser to see the server in action
+- You can open other private browser windows to simulate multiple clients
 
 ## Understanding the code
 
