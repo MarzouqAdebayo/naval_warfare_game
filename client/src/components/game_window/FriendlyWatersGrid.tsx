@@ -1,4 +1,6 @@
-import { Timeline, useGameContext } from "../../GameController";
+import { useGameContext } from "../../GameController";
+import { CellState, Player, Timeline } from "../../types";
+import ShotMarker from "../icons/ShotMarker";
 import {
   Cell,
   GameBoardGrid,
@@ -6,34 +8,39 @@ import {
   WatersContainer,
 } from "../styled_components/gameControllerStyles";
 
-const fillCells = (timeline: Timeline) => {
-  const arr = [];
-  for (let i = 0; i < 100; i++) {
-    arr.push([i]);
-  }
-  return Array.from({ length: 100 }).map((_, index) => {
-    return (
+const fillCells = (timeline: Timeline, player: Player) => {
+  return player.board.map((row, i) =>
+    row.map((cell, j) => (
       <Cell
-        key={index}
+        key={`${i}-${j}`}
         position={""}
         highlight={false}
         timeline={timeline}
         board="friendly"
-        shot={true}
+        shot={false}
         cursor={""}
-      />
-    );
-  });
+      >
+        {cell !== CellState.Empty && (
+          <ShotMarker hit={cell === CellState.Hit || cell === CellState.Sunk} />
+        )}
+      </Cell>
+    )),
+  );
 };
 
 export const FriendlyWatersGrid = () => {
   const {
-    state: { timeline },
+    state: { timeline, game },
   } = useGameContext();
+
+  if (!game) return null;
+  const { players, index } = game;
+  const board = players[index];
+
   return (
     <WatersContainer row="5">
       <SetupGridContainer>
-        <GameBoardGrid>{fillCells(timeline)}</GameBoardGrid>
+        <GameBoardGrid>{fillCells(timeline, board)}</GameBoardGrid>
       </SetupGridContainer>
     </WatersContainer>
   );

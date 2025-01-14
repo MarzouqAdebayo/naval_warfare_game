@@ -1,48 +1,52 @@
-import { createContext, ReactNode, useContext, useReducer } from "react";
+import { createContext, ReactNode, useContext } from "react";
 import reducer, { Action } from "./reducer";
-import { useWebSocket } from "./hooks/useWebSocket";
+import {
+  useWebSocket,
+  WebSocketMessage,
+  ConnectionStatus,
+} from "./hooks/useWebSocket";
+import { AppState, Timeline } from "./types";
 
-export interface GameContextType {
-  state: GameState;
+interface GameContextType<T> {
+  state: AppState;
   dispatch: React.Dispatch<Action>;
+  status: ConnectionStatus;
+  isConnected: boolean;
+  data: WebSocketMessage | null;
+  sendMessage: (data: Omit<WebSocketMessage<T>, "from">) => void;
+  reconnect: () => void;
 }
-
-export enum Timeline {
-  Init = "init",
-  Setup = "setup",
-  GameStart = "game_start",
-}
-
-export type GameState = {
-  timeline: Timeline;
-  players: object;
-  turn: 0 | 1;
-  message: string;
-  winner: string;
-};
-
-const initialState: GameState = {
-  timeline: Timeline.GameStart,
-  players: {},
-  turn: 0,
-  message: "",
-  winner: "",
-};
-
-const GameContext = createContext<GameContextType>({} as GameContextType);
 
 interface GameProviderProps {
   children: ReactNode;
 }
 
+const initialState: AppState = {
+  timeline: Timeline.GameStart,
+  name: "",
+  game: null,
+};
+
+const GameContext = createContext<GameContextType<unknown>>(
+  {} as GameContextType<unknown>,
+);
+
 function GameProvider({ children }: GameProviderProps) {
-  const [state, dispatch] = useReducer(reducer, initialState);
-  const { status, message, sendMessage, reconnect, isConnected } = useWebSocket(
-    "ws://localhost:5000/ws",
-  );
+  const { state, dispatch, status, data, sendMessage, reconnect, isConnected } =
+    useWebSocket("ws://localhost:5000/ws", reducer, initialState);
 
   return (
-    <GameContext.Provider value={{ state, dispatch }}>
+    <GameContext.Provider
+      value={{
+        state,
+        dispatch,
+        status,
+        data,
+        sendMessage,
+        reconnect,
+        isConnected,
+      }}
+    >
       {children}
     </GameContext.Provider>
   );

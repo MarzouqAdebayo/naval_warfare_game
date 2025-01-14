@@ -6,15 +6,25 @@ import (
 )
 
 type PlayerGameStruct struct {
-	Index          int
-	Board          *Board
-	Ships          []Ship
-	Shotsfired     []Position
-	RemainingShips int
+	Index          int        `json:"index"`
+	Board          *Board     `json:"board"`
+	Ships          []Ship     `json:"ships"`
+	Shotsfired     []Position `json:"shotsFired"`
+	RemainingShips int        `json:"remainingShips"`
 }
 
 var ErrCannotPlaceShip = errors.New("cannot place ship in this position")
 var ErrShipCollision = errors.New("there is a collision in this position")
+
+func NewPlayer(index int, boardSize int) *PlayerGameStruct {
+	initialShips := InitializeShips()
+	return &PlayerGameStruct{
+		Index:          index,
+		Board:          GenerateEmptyBoard(boardSize),
+		Ships:          initialShips,
+		RemainingShips: len(initialShips),
+	}
+}
 
 func (p *PlayerGameStruct) GenerateAndPlaceShips() {
 	// FIXME Due to the size of the ship, board size cannot
@@ -26,6 +36,8 @@ func (p *PlayerGameStruct) GenerateAndPlaceShips() {
 	axes := [2]Axis{X, Y}
 
 	// Using brute force method lol
+	// FIXME Use goroutines to hasten placement
+	// FIXME Don't forget to use mutex
 	for _, ship := range ships {
 		for {
 			randomStartPos := Position{X: rand.IntN(p.Board.Size), Y: rand.IntN(p.Board.Size)}

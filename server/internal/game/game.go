@@ -39,13 +39,8 @@ func NewBattleshipGame(boardSize int) *BattleshipGame {
 	}
 
 	for i := range 2 {
-		initialShips := InitializeShips()
-		game.Players[i] = &PlayerGameStruct{
-			Index:          i,
-			Board:          GenerateEmptyBoard(boardSize),
-			Ships:          initialShips,
-			RemainingShips: len(initialShips),
-		}
+		p := NewPlayer(i, boardSize)
+		game.Players[i] = p
 	}
 
 	return game
@@ -78,6 +73,9 @@ func (game *BattleshipGame) Attack(attackerIndex int, targetCoordinates Position
 				ship.Hits++
 				if ship.Hits == uint8(ship.Size) {
 					ship.Sunk = true
+					for _, pos := range ship.Positions {
+						defender.Board.Squares[pos.X][pos.Y].State = Sunk
+					}
 					defender.RemainingShips--
 				}
 				break

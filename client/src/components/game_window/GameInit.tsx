@@ -1,17 +1,23 @@
 import { ChangeEvent, FormEvent, useState } from "react";
 import { useGameContext } from "../../GameController";
 import {
+  ConnectionIndicator,
   InitWindow,
   PlayerForm,
 } from "../styled_components/gameControllerStyles";
+import { Timeline } from "../../types";
 
 export const GameInit = ({ hey }: { hey: string }) => {
-  const { dispatch } = useGameContext();
-  const [name, setName] = useState("");
+  const {
+    state: { name },
+    dispatch,
+    isConnected,
+    sendMessage,
+  } = useGameContext();
   const [error, setError] = useState("");
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setName(e.target.value);
+    dispatch({ type: "SET_NAME", payload: e.target.value });
   };
 
   const handleFocus = () => {};
@@ -28,7 +34,8 @@ export const GameInit = ({ hey }: { hey: string }) => {
       return;
     }
     setError("");
-    console.log(name);
+    sendMessage({ type: "set_user_data", payload: { name } });
+    dispatch({ type: "CHANGE_TIMELINE", payload: Timeline.Menu });
   };
 
   return (
@@ -49,7 +56,7 @@ export const GameInit = ({ hey }: { hey: string }) => {
         <p style={{ color: "red" }}>{error}</p>
         <button type="submit">Start game</button>
       </PlayerForm>
-      <div className="connection"></div>
+      <ConnectionIndicator isConnected={isConnected} />
     </InitWindow>
   );
 };

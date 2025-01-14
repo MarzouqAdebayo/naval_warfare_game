@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useReducer } from "react";
+import { Action } from "../reducer";
+import { GameData, Timeline } from "../types";
 
 export interface WebSocketMessage<T = unknown> {
   type: string;
-  content: T;
-  from?: string;
-  to?: string;
+  payload: T;
 }
 
 export interface WebSocketOptions<T> {
@@ -16,15 +16,40 @@ export interface WebSocketOptions<T> {
   onError?: (error: Event) => void;
 }
 
-export enum WebSocketStatus {
+export enum ConnectionStatus {
   CONNECTING = 0,
   OPEN = 1,
   CLOSING = 2,
   CLOSED = 3,
 }
 
-export const useWebSocket = <T = unknown>(
+interface NotificationEvent {
+  type: "notification";
+  payload: {
+    id: string;
+  };
+}
+
+class Observable {
+  private listeners: Map<string, (data: unknown) => void>;
+  constructor() {
+    this.listeners = new Map();
+  }
+  subscribe(id: string, func: (data: unknown) => void) {
+    this.listeners.set(id, func);
+  }
+  unsubscribe(id: string) {
+    this.listeners.delete(id);
+  }
+  broadcast(data: unknown) {
+    this.listeners.forEach((listener) => listener(data));
+  }
+}
+
+export const useWebSocket = <T = unknown, U = unknown>(
   url: string,
+  reducer: (state: U, action: Action) => U,
+  initialState: U,
   options: WebSocketOptions<T> = {},
 ) => {
   const {
@@ -36,8 +61,14 @@ export const useWebSocket = <T = unknown>(
     onError,
   } = options;
 
-  const [status, setStatus] = useState<WebSocketStatus>(WebSocketStatus.CLOSED);
-  const [message, setMessage] = useState<WebSocketMessage<T> | null>(null);
+  const [state, dispatch] = useReducer(
+    reducer,
+    initialState instanceof Function ? initialState() : initialState,
+  );
+  const [data, setData] = useState<WebSocketMessage<T> | null>(null);
+  const [status, setStatus] = useState<ConnectionStatus>(
+    ConnectionStatus.CLOSED,
+  );
   const ws = useRef<WebSocket | null>(null);
   const reconnectCount = useRef<number>(0);
   const reconnectTimeoutId = useRef<number | null>(null);
@@ -45,9 +76,33 @@ export const useWebSocket = <T = unknown>(
   const handleMessage = useCallback(
     (event: MessageEvent) => {
       try {
-        //const data: WebSocketMessage<T> = JSON.parse(event.data);
-        const data = {} as WebSocketMessage<T>;
-        setMessage(data);
+        const data: WebSocketMessage<T> = JSON.parse(event.data);
+        switch (data.type) {
+          case "game_start":
+            console.log(data.payload);
+            dispatch({
+              type: "SET_SERVER_GAME_STATE",
+              payload: data.payload as GameData,
+            });
+            break;
+          case "game_update":
+            console.log(data.payload);
+            dispatch({
+              type: "SET_SERVER_GAME_STATE",
+              payload: data.payload as GameData,
+            });
+            break;
+          case "game_found":
+            // TODO Returns a room ID with intial room data
+            // TODO Recieve room data from server
+            dispatch({ type: "SET_GAME_STATE" });
+            // Dispatch timeline instantly
+            dispatch({ type: "CHANGE_TIMELINE", payload: Timeline.Setup });
+            break;
+          default:
+            setData(data);
+            break;
+        }
         if (onMessage) onMessage(data);
       } catch (error) {
         console.error("Error parsing WebSocket message:", error);
@@ -57,19 +112,19 @@ export const useWebSocket = <T = unknown>(
   );
 
   const connect = useCallback(() => {
-    if (ws.current?.readyState === WebSocketStatus.OPEN) return;
+    if (ws.current?.readyState === ConnectionStatus.OPEN) return;
 
     ws.current = new WebSocket(url);
-    setStatus(WebSocketStatus.CONNECTING);
+    setStatus(ConnectionStatus.CONNECTING);
 
     ws.current.onopen = () => {
-      setStatus(WebSocketStatus.OPEN);
+      setStatus(ConnectionStatus.OPEN);
       reconnectCount.current = 0;
       if (onOpen) onOpen();
     };
 
     ws.current.onclose = () => {
-      setStatus(WebSocketStatus.CLOSED);
+      setStatus(ConnectionStatus.CLOSED);
       if (onClose) onClose();
 
       if (reconnectCount.current < reconnectAttempts) {
@@ -112,8 +167,8 @@ export const useWebSocket = <T = unknown>(
     };
   }, [connect]);
 
-  const sendMessage = useCallback((data: Omit<WebSocketMessage<T>, "from">) => {
-    if (ws.current?.readyState === WebSocketStatus.OPEN) {
+  const sendMessage = useCallback((data: WebSocketMessage<T>) => {
+    if (ws.current?.readyState === ConnectionStatus.OPEN) {
       ws.current.send(JSON.stringify(data));
     } else {
       console.warn("WebSocket is not connected");
@@ -128,10 +183,12 @@ export const useWebSocket = <T = unknown>(
   }, [connect]);
 
   return {
+    state,
+    dispatch,
     status,
-    message,
+    data,
     sendMessage,
     reconnect,
-    isConnected: status === WebSocketStatus.OPEN,
+    isConnected: status === ConnectionStatus.OPEN,
   };
 };

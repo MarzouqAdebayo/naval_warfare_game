@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { Timeline } from "../../GameController";
+import { Timeline } from "../../types";
 
 const MainWindow = styled.div`
   display: flex;
@@ -14,15 +14,16 @@ const InitWindow = styled.div`
   width: 100%;
   text-align: center;
   position: relative;
-  & > div.connection {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    height: 20px;
-    width: 20px;
-    border-radius: 50%;
-    background-color: #15803d;
-  }
+`;
+
+const ConnectionIndicator = styled.div<{ isConnected: boolean }>`
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background-color: ${(props) => (props.isConnected ? "#15803d" : "#b91c1c")};
 `;
 
 const PlayerForm = styled.form`
@@ -41,6 +42,68 @@ const PlayerForm = styled.form`
   }
   & > input {
     padding: 0.5rem;
+  }
+`;
+
+const MenuWindow = styled.div`
+  display: flex;
+  height: 100%;
+  width: 100%;
+  text-align: center;
+  flex-direction: column;
+  animation: fadeinslow 2s ease-in;
+  margin: auto;
+  width: 100%;
+  position: relative;
+`;
+
+const MenuTitle = styled.h1`
+  font-size: 3rem;
+  @media (max-width: 900px) {
+    font-size: 2rem;
+  }
+`;
+
+const MenuOptionsContainer = styled.div``;
+
+const MenuOption = styled.button`
+  padding: 0.5rem;
+  margin: auto;
+  font-size: 1.5rem;
+  @media (max-width: 900px) {
+    font-size: 1rem;
+    padding: 0.5rem 0.8rem;
+  }
+`;
+
+const LoaderWrapper = styled.div<{ show: boolean }>`
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  z-index: ${(props) => (props.show ? "45" : "-45")};
+  background-color: rgb(2, 0, 36);
+  font-size: 2rem;
+`;
+
+const LoaderContainer = styled.div`
+  position: relative;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+`;
+
+const LoaderCancelButton = styled.button`
+  padding: 0.5rem;
+  font-size: 1.5rem;
+  cursor: pointer;
+  @media (max-width: 900px) {
+    font-size: 1rem;
+    padding: 0.5rem 0.8rem;
   }
 `;
 
@@ -131,6 +194,7 @@ const Cell = styled.div<{
 `;
 
 const GameStartContainer = styled.div`
+  position: relative;
   display: grid;
   grid-template-rows: 4rem auto 32rem;
   grid-template-columns: 1fr 1fr;
@@ -209,6 +273,14 @@ const LabelContainer = styled.div<{ row: string }>`
 export {
   MainWindow,
   InitWindow,
+  MenuWindow,
+  MenuTitle,
+  MenuOptionsContainer,
+  MenuOption,
+  LoaderWrapper,
+  LoaderContainer,
+  LoaderCancelButton,
+  ConnectionIndicator,
   PlayerForm,
   SetupWindow,
   SetupTitle,

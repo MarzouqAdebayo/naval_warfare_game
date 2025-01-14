@@ -124,6 +124,14 @@ func TestAttack(t *testing.T) {
 			}
 		}
 
+		for i := range boardSize {
+			for j := range 1 {
+				if player2.Board.Squares[i][j].State != Sunk {
+					t.Errorf("Ship should be sunk but its is not")
+				}
+			}
+		}
+
 		if !game.GameOver {
 			t.Errorf("game should be over")
 		}
