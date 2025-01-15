@@ -1,4 +1,5 @@
 import { useGameContext } from "../../GameController";
+import shipTypes from "../../helpers/shipTypes";
 import { CellState, Player, Timeline } from "../../types";
 import ShotMarker from "../icons/ShotMarker";
 import {
@@ -20,7 +21,7 @@ const fillCells = (timeline: Timeline, player: Player) => {
         shot={false}
         cursor={""}
       >
-        {cell !== CellState.Empty && (
+        {![CellState.Empty, CellState.Ship].includes(cell) && (
           <ShotMarker hit={cell === CellState.Hit || cell === CellState.Sunk} />
         )}
       </Cell>
@@ -35,12 +36,19 @@ export const FriendlyWatersGrid = () => {
 
   if (!game) return null;
   const { players, index } = game;
-  const board = players[index];
+  const player = players[index];
 
   return (
     <WatersContainer row="5">
       <SetupGridContainer>
-        <GameBoardGrid>{fillCells(timeline, board)}</GameBoardGrid>
+        <GameBoardGrid>
+          {player.fleet.map((ship) =>
+            shipTypes[ship.type].getShipWithProps(ship),
+          )}
+        </GameBoardGrid>
+      </SetupGridContainer>
+      <SetupGridContainer>
+        <GameBoardGrid>{fillCells(timeline, player)}</GameBoardGrid>
       </SetupGridContainer>
     </WatersContainer>
   );

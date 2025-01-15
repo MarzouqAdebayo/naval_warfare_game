@@ -2,7 +2,6 @@ package game
 
 import (
 	"errors"
-	"fmt"
 	"math/rand/v2"
 )
 
@@ -32,16 +31,6 @@ func (p *PlayerGameStruct) GenerateAndPlaceShips() {
 	if p.Board.Size < 5 {
 		return
 	}
-	fmt.Println()
-	fmt.Printf("\n player before: %+v\n", p.Ships)
-	fmt.Println()
-
-	defer func() {
-		fmt.Println()
-		fmt.Printf("\n player after: %+v\n", p.Ships)
-		fmt.Println()
-	}()
-
 	ships := InitializeShips()
 	axes := [2]Axis{X, Y}
 	p.RemainingShips = len(ships)
@@ -63,14 +52,20 @@ func (p *PlayerGameStruct) GenerateAndPlaceShips() {
 }
 
 // Gets players fleet information
-func (p *PlayerGameStruct) GetFleetInfo() PlayerFleet {
-	fmt.Println()
-	fmt.Printf("GetFleetInfo Before: %+v", p.Ships)
-	fmt.Println()
-
+func (p *PlayerGameStruct) GetPlainFleetInfo() PlayerFleet {
 	ships := make(PlayerFleet, len(p.Ships))
 	for i := range len(p.Ships) {
 		ships[i] = p.Ships[i].GetShipInfo()
+	}
+	return ships
+}
+
+func (p *PlayerGameStruct) GetMaskedFleetInfo() PlayerFleet {
+	ships := make(PlayerFleet, 0)
+	for i := range len(p.Ships) {
+		if p.Ships[i].Sunk {
+			ships = append(ships, p.Ships[i].GetShipInfo())
+		}
 	}
 	return ships
 }
