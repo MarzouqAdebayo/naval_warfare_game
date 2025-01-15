@@ -2,6 +2,7 @@ package game
 
 import (
 	"errors"
+	"fmt"
 	"math/rand/v2"
 )
 
@@ -13,16 +14,15 @@ type PlayerGameStruct struct {
 	RemainingShips int        `json:"remainingShips"`
 }
 
+type PlayerFleet []ShipInfoStruct
+
 var ErrCannotPlaceShip = errors.New("cannot place ship in this position")
 var ErrShipCollision = errors.New("there is a collision in this position")
 
 func NewPlayer(index int, boardSize int) *PlayerGameStruct {
-	initialShips := InitializeShips()
 	return &PlayerGameStruct{
-		Index:          index,
-		Board:          GenerateEmptyBoard(boardSize),
-		Ships:          initialShips,
-		RemainingShips: len(initialShips),
+		Index: index,
+		Board: GenerateEmptyBoard(boardSize),
 	}
 }
 
@@ -32,8 +32,19 @@ func (p *PlayerGameStruct) GenerateAndPlaceShips() {
 	if p.Board.Size < 5 {
 		return
 	}
+	fmt.Println()
+	fmt.Printf("\n player before: %+v\n", p.Ships)
+	fmt.Println()
+
+	defer func() {
+		fmt.Println()
+		fmt.Printf("\n player after: %+v\n", p.Ships)
+		fmt.Println()
+	}()
+
 	ships := InitializeShips()
 	axes := [2]Axis{X, Y}
+	p.RemainingShips = len(ships)
 
 	// Using brute force method lol
 	// FIXME Use goroutines to hasten placement
@@ -51,6 +62,19 @@ func (p *PlayerGameStruct) GenerateAndPlaceShips() {
 	}
 }
 
+// Gets players fleet information
+func (p *PlayerGameStruct) GetFleetInfo() PlayerFleet {
+	fmt.Println()
+	fmt.Printf("GetFleetInfo Before: %+v", p.Ships)
+	fmt.Println()
+
+	ships := make(PlayerFleet, len(p.Ships))
+	for i := range len(p.Ships) {
+		ships[i] = p.Ships[i].GetShipInfo()
+	}
+	return ships
+}
+
 func (p *PlayerGameStruct) PlaceShip(ship *Ship, startPos Position, axis Axis) error {
 	positions, err := p.getShipCoordinates(ship.Size, startPos, axis)
 	if err != nil {
@@ -58,6 +82,7 @@ func (p *PlayerGameStruct) PlaceShip(ship *Ship, startPos Position, axis Axis) e
 	}
 
 	ship.Positions = positions
+	ship.Axis = axis
 	p.Ships = append(p.Ships, *ship)
 
 	for _, pos := range positions {

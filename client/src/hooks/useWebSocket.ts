@@ -23,29 +23,6 @@ export enum ConnectionStatus {
   CLOSED = 3,
 }
 
-interface NotificationEvent {
-  type: "notification";
-  payload: {
-    id: string;
-  };
-}
-
-class Observable {
-  private listeners: Map<string, (data: unknown) => void>;
-  constructor() {
-    this.listeners = new Map();
-  }
-  subscribe(id: string, func: (data: unknown) => void) {
-    this.listeners.set(id, func);
-  }
-  unsubscribe(id: string) {
-    this.listeners.delete(id);
-  }
-  broadcast(data: unknown) {
-    this.listeners.forEach((listener) => listener(data));
-  }
-}
-
 export const useWebSocket = <T = unknown, U = unknown>(
   url: string,
   reducer: (state: U, action: Action) => U,

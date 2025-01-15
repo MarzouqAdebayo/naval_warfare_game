@@ -120,7 +120,9 @@ func (h *Hub) periodicCleanup() {
 			client.mu.RUnlock()
 		}
 		h.mu.Unlock()
+		h.broadcast <- []byte(fmt.Sprintf("Number of games: %d, Number of players: %d", len(h.rooms), len(h.clients)))
 	}
+
 }
 
 func (h *Hub) clientDisconnected(client *Client) {

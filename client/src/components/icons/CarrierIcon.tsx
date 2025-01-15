@@ -1,16 +1,23 @@
-import { CellState, ShipIconProps } from "../../types";
+import { ShipIconProps } from "../../types";
 import IconContainer from "./IconContainer";
 
 const CarrierIcon: React.FC<ShipIconProps> = (props) => {
-  const { start, axis, ship_length, sunk } = props;
+  const { type, x, y, axis, length: ship_length, sunk } = props;
   return (
-    <IconContainer start={start} axis={axis} ship_length={ship_length}>
+    <IconContainer
+      type={type}
+      x={x}
+      y={y}
+      axis={axis}
+      length={ship_length}
+      sunk={sunk}
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="100%"
         height="100%"
         viewBox={axis === "X" ? "0 0 299 95" : "0 0 95 299"}
-        fill={sunk === CellState.Sunk ? "grey" : "skyblue"}
+        fill={sunk ? "grey" : "skyblue"}
         preserveAspectRatio="none"
         {...props}
       >

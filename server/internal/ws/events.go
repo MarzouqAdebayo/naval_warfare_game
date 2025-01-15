@@ -35,17 +35,18 @@ type AttackEvent struct {
 
 type PlayerInfo struct {
 	Board [][]g.CellState `json:"board"`
+	Fleet g.PlayerFleet   `json:"fleet"`
 }
 
 type GameStartPayload struct {
-	RoomID      string         `json:"roomID"`
-	Index       int            `json:"index"`
-	Players     [2]*PlayerInfo `json:"players"`
-	Message     string         `json:"message"`
-	CurrentTurn int            `json:"currentTurn"`
-	GameOver    bool           `json:"gameOver"`
-	Mode        g.GameMode     `json:"mode"`
-	Winner      int            `json:"winner"`
+	RoomID      string        `json:"roomID"`
+	Index       int           `json:"index"`
+	Players     [2]PlayerInfo `json:"players"`
+	Message     string        `json:"message"`
+	CurrentTurn int           `json:"currentTurn"`
+	GameOver    bool          `json:"gameOver"`
+	Mode        g.GameMode    `json:"mode"`
+	Winner      int           `json:"winner"`
 }
 
 func (e *Event) Marshal() ([]byte, error) {
@@ -103,14 +104,11 @@ func (e Event) Unmarshal(data []byte) (*Event, error) {
 func AttackEventHandler(e AttackEvent, c *Client) {
 	c.hub.mu.Lock()
 	defer c.hub.mu.Unlock()
-	fmt.Printf("%+v", c.hub.rooms)
-	fmt.Println()
 	for _, v := range c.hub.rooms {
 		fmt.Printf("Room: '%s' ", v.id)
 	}
 	fmt.Println()
 	if room, ok := c.hub.rooms[e.RoomID]; ok {
-		fmt.Println("Room found")
 		r, err := room.Attack(e.AttackerIndex, e.AttackPosition)
 		if err != nil {
 			return
@@ -124,7 +122,7 @@ func AttackEventHandler(e AttackEvent, c *Client) {
 			payload := &GameStartPayload{
 				RoomID:      room.id,
 				Index:       i,
-				Players:     [2]*PlayerInfo{},
+				Players:     [2]PlayerInfo{},
 				Message:     "Hi Hi Captain",
 				CurrentTurn: room.CurrentTurn,
 				GameOver:    room.GameOver,
@@ -133,9 +131,11 @@ func AttackEventHandler(e AttackEvent, c *Client) {
 			}
 
 			// Send plain board for player
-			payload.Players[i] = &PlayerInfo{Board: room.Players[i].Board.PlainBoard()}
+			player1 := room.Players[i]
+			payload.Players[i] = PlayerInfo{Board: player1.Board.PlainBoard(), Fleet: player1.GetFleetInfo()}
 			// Send masked board for opponent
-			payload.Players[1-i] = &PlayerInfo{Board: room.Players[1-i].Board.MaskBoard()}
+			player2 := room.Players[1-i]
+			payload.Players[1-i] = PlayerInfo{Board: player2.Board.MaskBoard(), Fleet: player2.GetFleetInfo()}
 
 			msg, err := func(payload interface{}) ([]byte, error) {
 				fmt.Printf("%+v - \n", payload)
@@ -155,7 +155,6 @@ func AttackEventHandler(e AttackEvent, c *Client) {
 				return
 			}
 
-			log.Println(msg)
 			c.send <- msg
 		}
 	} else {
@@ -166,9 +165,6 @@ func AttackEventHandler(e AttackEvent, c *Client) {
 func FindGameEventHandler(c *Client) {
 	c.hub.mu.Lock()
 	defer c.hub.mu.Unlock()
-	fmt.Println()
-	fmt.Printf("no of rooms: %d", len(c.hub.rooms))
-	fmt.Println()
 	for _, room := range c.hub.rooms {
 		if room == nil || len(room.clients) == 2 {
 			continue
@@ -176,16 +172,20 @@ func FindGameEventHandler(c *Client) {
 		room.clients = append(room.clients, c)
 		room.BattleshipGame = *g.NewBattleshipGame(10)
 
-		// room.Broadcast([]byte(fmt.Sprintf("%s joined room %s, game room is ready\n", e.Username, room.id)))
-		for i, c := range room.clients {
+		for i := range room.clients {
 			player := room.BattleshipGame.Players[i]
 			player.GenerateAndPlaceShips()
+			log.Println()
+			log.Printf("%+v", player.Ships)
+			log.Println()
+		}
 
+		for i, c := range room.clients {
 			outgoingEvent := &Event{Type: "game_start"}
 			payload := &GameStartPayload{
 				RoomID:      room.id,
 				Index:       i,
-				Players:     [2]*PlayerInfo{},
+				Players:     [2]PlayerInfo{},
 				Message:     "Hi Captain, you've been given orders to eliminate the enemy, good luck sailor",
 				CurrentTurn: room.CurrentTurn,
 				GameOver:    room.GameOver,
@@ -194,9 +194,15 @@ func FindGameEventHandler(c *Client) {
 			}
 
 			// Send plain board for player
-			payload.Players[i] = &PlayerInfo{Board: room.Players[i].Board.PlainBoard()}
+			player1 := room.Players[i]
+			payload.Players[i] = PlayerInfo{Board: player1.Board.PlainBoard(), Fleet: player1.GetFleetInfo()}
 			// Send masked board for opponent
-			payload.Players[1-i] = &PlayerInfo{Board: room.Players[1-i].Board.MaskBoard()}
+			player2 := room.Players[1-i]
+			payload.Players[1-i] = PlayerInfo{Board: player2.Board.MaskBoard(), Fleet: player2.GetFleetInfo()}
+
+			log.Println()
+			log.Printf("After setting payload: %+v", payload.Players)
+			log.Println()
 
 			msg, err := func(event string, payload interface{}) ([]byte, error) {
 				fmt.Printf("%+v - \n", payload)
@@ -217,7 +223,6 @@ func FindGameEventHandler(c *Client) {
 				return
 			}
 
-			log.Println(msg)
 			c.send <- msg
 		}
 

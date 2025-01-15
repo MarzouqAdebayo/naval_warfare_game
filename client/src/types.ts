@@ -1,3 +1,5 @@
+import { ShipTypeKeys } from "./helpers/shipTypes";
+
 export enum Timeline {
   Init = "init",
   Menu = "menu",
@@ -15,6 +17,7 @@ export enum CellState {
 
 export type Player = {
   board: CellState[][];
+  fleet: ShipIconProps[];
 };
 
 export type GameData = {
@@ -35,8 +38,10 @@ export type AppState = {
 };
 
 export interface ShipIconProps {
-  start: number;
+  type: ShipTypeKeys;
+  x: number;
+  y: number;
   axis: "X" | "Y";
-  ship_length: number;
-  sunk: CellState;
+  length: number;
+  sunk: boolean;
 }

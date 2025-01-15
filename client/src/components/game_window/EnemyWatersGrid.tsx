@@ -45,6 +45,7 @@ export const EnemyWatersGrid = () => {
   const player = players[1 - index];
 
   const handleCellClick = (x: number, y: number) => {
+    if (game.index !== game.currentTurn) return;
     const payload = {
       roomID: game.roomID,
       attackerIndex: game.index,
@@ -57,12 +58,9 @@ export const EnemyWatersGrid = () => {
     <WatersContainer row="3">
       <SetupGridContainer>
         <GameBoardGrid>
-          {shipTypes["battleship"].getShipWithProps({
-            start: 4,
-            axis: "Y",
-            sunk: CellState.Sunk,
-            ship_length: 5,
-          })}
+          {player.fleet.map((ship) =>
+            shipTypes[ship.type].getShipWithProps(ship),
+          )}
         </GameBoardGrid>
       </SetupGridContainer>
       <SetupGridContainer>

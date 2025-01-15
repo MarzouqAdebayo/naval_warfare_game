@@ -2,8 +2,10 @@ import Carrier from "../components/icons/CarrierIcon";
 import Battleship from "../components/icons/BattleshipIcon";
 import Destroyer from "../components/icons/DestroyerIcon";
 import Submarine from "../components/icons/SubmarineIcon";
-import Patrol from "../components/icons/PatrolIcon";
+import Cruiser from "../components/icons/CruiserIcon";
 import { ShipIconProps } from "../types";
+
+export type ShipTypeKeys = keyof typeof shipTypes;
 
 export const shipTypes = {
   carrier: {
@@ -13,9 +15,11 @@ export const shipTypes = {
       return (
         <Carrier
           key={"carrier"}
-          start={props.start}
+          type={props.type}
+          x={props.x}
+          y={props.y}
           axis={props.axis}
-          ship_length={5}
+          length={5}
           sunk={props.sunk}
         />
       );
@@ -27,10 +31,12 @@ export const shipTypes = {
     getShipWithProps: (props: ShipIconProps) => {
       return (
         <Battleship
+          type={props.type}
           key={"battleship"}
-          start={props.start}
+          x={props.x}
+          y={props.y}
           axis={props.axis}
-          ship_length={4}
+          length={4}
           sunk={props.sunk}
         />
       );
@@ -43,9 +49,11 @@ export const shipTypes = {
       return (
         <Destroyer
           key={"destroyer"}
-          start={props.start}
+          type={props.type}
+          x={props.x}
+          y={props.y}
           axis={props.axis}
-          ship_length={3}
+          length={3}
           sunk={props.sunk}
         />
       );
@@ -58,24 +66,28 @@ export const shipTypes = {
       return (
         <Submarine
           key={"submarine"}
-          start={props.start}
+          type={props.type}
+          x={props.x}
+          y={props.y}
           axis={props.axis}
-          ship_length={3}
+          length={3}
           sunk={props.sunk}
         />
       );
     },
   },
-  patrol_boat: {
-    name: "patrol boat",
+  cruiser: {
+    name: "cruiser",
     length: 2,
     getShipWithProps: (props: ShipIconProps) => {
       return (
-        <Patrol
-          key={"patrol-boat"}
-          start={props.start}
+        <Cruiser
+          key={"cruiser"}
+          type={props.type}
+          x={props.x}
+          y={props.y}
           axis={props.axis}
-          ship_length={2}
+          length={2}
           sunk={props.sunk}
         />
       );
