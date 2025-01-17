@@ -14,6 +14,7 @@ const InitWindow = styled.div`
   width: 100%;
   text-align: center;
   position: relative;
+  padding: 1rem 4rem;
 `;
 
 const ConnectionIndicator = styled.div<{ isConnected: boolean }>`
@@ -27,8 +28,12 @@ const ConnectionIndicator = styled.div<{ isConnected: boolean }>`
 `;
 
 const PlayerForm = styled.form`
+  background-color: #fff;
   display: flex;
-  font-size: 1.5rem;
+  height: 100%;
+  width: 100%;
+  max-width: 640px;
+  font-size: 2rem;
   flex-direction: column;
   margin: 3rem auto;
   padding: 2rem 0;
@@ -39,9 +44,11 @@ const PlayerForm = styled.form`
     margin: 1rem auto;
     padding: 0.8rem;
     cursor: pointer;
+    border-radius: 16px;
   }
   & > input {
-    padding: 0.5rem;
+    padding: 1rem;
+    border-radius: 16px;
   }
 `;
 
@@ -53,7 +60,6 @@ const MenuWindow = styled.div`
   flex-direction: column;
   animation: fadeinslow 2s ease-in;
   margin: auto;
-  width: 100%;
   position: relative;
 `;
 
@@ -109,11 +115,13 @@ const LoaderCancelButton = styled.button`
 
 const SetupWindow = styled.div`
   display: flex;
+  height: 100%;
+  width: 100%;
   text-align: center;
   flex-direction: column;
   animation: fadeinslow 2s ease-in;
   margin: auto;
-  width: 100%;
+  position: relative;
 `;
 
 const SetupTitle = styled.h1`

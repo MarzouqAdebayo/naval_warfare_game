@@ -22,7 +22,7 @@ interface GameProviderProps {
 }
 
 const initialState: AppState = {
-  timeline: Timeline.GameStart,
+  timeline: Timeline.Init,
   name: "",
   game: null,
 };

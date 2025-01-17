@@ -5,9 +5,9 @@ import {
   InitWindow,
   PlayerForm,
 } from "../styled_components/gameControllerStyles";
-import { Timeline } from "../../types";
+import { Timeline, WSEvents } from "../../types";
 
-export const GameInit = ({ hey }: { hey: string }) => {
+export const GameInit = () => {
   const {
     state: { name },
     dispatch,
@@ -34,7 +34,7 @@ export const GameInit = ({ hey }: { hey: string }) => {
       return;
     }
     setError("");
-    sendMessage({ type: "set_user_data", payload: { name } });
+    sendMessage({ type: WSEvents.EventSetUserData, payload: { name } });
     dispatch({ type: "CHANGE_TIMELINE", payload: Timeline.Menu });
   };
 
@@ -52,9 +52,8 @@ export const GameInit = ({ hey }: { hey: string }) => {
           autoComplete="off"
           value={name}
         />
-        <div>{hey}</div>
         <p style={{ color: "red" }}>{error}</p>
-        <button type="submit">Start game</button>
+        <button type="submit">Set Name</button>
       </PlayerForm>
       <ConnectionIndicator isConnected={isConnected} />
     </InitWindow>

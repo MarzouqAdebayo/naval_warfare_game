@@ -4,48 +4,79 @@ import {
   Cell,
   GameBoardGrid,
   GridOverlayContainer,
+  LoaderCancelButton,
+  LoaderContainer,
+  LoaderWrapper,
   SetupGridContainer,
   SetupTitle,
   SetupWindow,
 } from "../styled_components/gameControllerStyles";
 import { useGameContext } from "../../GameController";
-
-const enum shipTypes {
-  Carrier = "Carrier",
-  Battleship = "Battleship",
-  Cruiser = "Cruiser",
-  Submarine = "Submarine",
-  Destroyer = "Destroyer",
-}
-
-const ships = [
-  { Type: shipTypes.Carrier, Size: 5, Hits: 0, Sunk: false },
-  { Type: shipTypes.Battleship, Size: 4, Hits: 0, Sunk: false },
-  { Type: shipTypes.Cruiser, Size: 3, Hits: 0, Sunk: false },
-  { Type: shipTypes.Submarine, Size: 3, Hits: 0, Sunk: false },
-  { Type: shipTypes.Destroyer, Size: 2, Hits: 0, Sunk: false },
-];
+import { GameStatus, Timeline, WSEvents } from "../../types";
+import shipTypes from "../../helpers/shipTypes";
 
 export const GameSetup = () => {
   const {
-    //data,
+    dispatch,
     sendMessage,
     state: { timeline, game },
   } = useGameContext();
   const [axis, setAxis] = useState<"X" | "Y">("X");
-  //const [shipPosition, setShipPosition] = useState([]);
-
-  const handleGenShips = () => {
-    sendMessage({ type: "find_game", payload: { name: axis } });
-  };
+  const [loading, setIsLoading] = useState(false);
 
   const handleSetAxis = () => {
     setAxis((prev) => (prev === "X" ? "Y" : "X"));
   };
 
-  if (!game) return null;
+  const handleCancel = () => {
+    setIsLoading(false);
+    sendMessage({ type: WSEvents.EventQuitGame, payload: null });
+  };
 
-  const { board } = game;
+  const handleLeaveRoom = () => {};
+
+  const handleGoToMainMenu = () => {
+    dispatch({ type: "CHANGE_TIMELINE", payload: Timeline.Menu });
+  };
+
+  if (!game) {
+    return (
+      <LoaderWrapper show={true}>
+        <LoaderContainer>
+          <LoaderCancelButton onClick={handleGoToMainMenu}>
+            Main menu
+          </LoaderCancelButton>
+        </LoaderContainer>
+      </LoaderWrapper>
+    );
+  }
+
+  if (game.status === GameStatus.Waiting) {
+    return (
+      <LoaderWrapper show={true}>
+        <LoaderContainer>
+          <div>Waiting for player to join room...</div>
+          <LoaderCancelButton onClick={handleLeaveRoom}>
+            Leave room
+          </LoaderCancelButton>
+        </LoaderContainer>
+      </LoaderWrapper>
+    );
+  }
+
+  const handleGenShips = () => {
+    sendMessage({
+      type: WSEvents.EventPlaceShips,
+      payload: {
+        instruction: "randomize",
+        roomID: game.roomID,
+        playerIndex: game.index,
+      },
+    });
+  };
+
+  const { players } = game;
+  const { board, fleet } = players[game.index];
 
   return (
     <SetupWindow>
@@ -55,6 +86,11 @@ export const GameSetup = () => {
       <GridOverlayContainer>
         <SetupGridContainer>
           <GameBoardGrid>
+            {fleet.map((ship) => shipTypes[ship.type].getShipWithProps(ship))}
+          </GameBoardGrid>
+        </SetupGridContainer>
+        <SetupGridContainer>
+          <GameBoardGrid>
             {board.map((row) => {
               return row.map((cell, i) => {
                 return (
@@ -62,7 +98,7 @@ export const GameSetup = () => {
                     key={i}
                     position=""
                     board="friendly"
-                    highlight={cell === "Ship"}
+                    highlight={cell === "Sunk"}
                     cursor={"pointer"}
                     timeline={timeline}
                     shot={true}
@@ -73,6 +109,12 @@ export const GameSetup = () => {
           </GameBoardGrid>
         </SetupGridContainer>
       </GridOverlayContainer>
+      <LoaderWrapper show={loading}>
+        <LoaderContainer>
+          <div>Loading...</div>
+          <LoaderCancelButton onClick={handleCancel}>Cancel</LoaderCancelButton>
+        </LoaderContainer>
+      </LoaderWrapper>
     </SetupWindow>
   );
 };

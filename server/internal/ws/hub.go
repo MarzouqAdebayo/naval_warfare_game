@@ -10,7 +10,15 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	g "server/internal/game"
 )
+
+// GameRoom represents the BattleshipGame with extra info
+type GameRoom struct {
+	id      string
+	clients []*Client
+	g.BattleshipGame
+}
 
 // Hub manages all connected clients
 type Hub struct {
@@ -59,8 +67,8 @@ func NewHub() *Hub {
 	return hub
 }
 
-func (g *GameRoom) Broadcast(message []byte) {
-	for _, client := range g.clients {
+func (h *Hub) notifyAll(message []byte) {
+	for _, client := range h.clients {
 		if !client.isAlive {
 			continue
 		}
@@ -82,24 +90,13 @@ func (h *Hub) Run() {
 			h.mu.Lock()
 			h.clients[client.id] = client
 			h.mu.Unlock()
-
 		case client := <-h.unregister:
 			h.mu.Lock()
 			h.clientDisconnected(client)
 			h.mu.Unlock()
 		case message := <-h.broadcast:
 			h.mu.RLock()
-			for _, client := range h.clients {
-				if !client.isAlive {
-					continue
-				}
-				select {
-				case client.send <- message:
-				default:
-					close(client.send)
-					client.isAlive = false
-				}
-			}
+			h.notifyAll(message)
 			h.mu.RUnlock()
 		}
 	}
@@ -120,7 +117,19 @@ func (h *Hub) periodicCleanup() {
 			client.mu.RUnlock()
 		}
 		h.mu.Unlock()
-		h.broadcast <- []byte(fmt.Sprintf("Number of games: %d, Number of players: %d", len(h.rooms), len(h.clients)))
+		pong := PongEvent{
+			Type: EventPong,
+			Payload: EventPongPayload{
+				NoOfClients: len(h.clients),
+				NoOfRooms:   len(h.rooms),
+			},
+		}
+		b, err := json.Marshal(pong)
+		if err != nil {
+			fmt.Printf("failed to marshal BroadcastAttackEvent: %v", err)
+			return
+		}
+		h.broadcast <- b
 	}
 
 }
@@ -132,29 +141,17 @@ func (h *Hub) clientDisconnected(client *Client) {
 				continue
 			}
 			for _, c := range room.clients {
-				msg := Message{
-					Type:    "user_left",
+				evt := ClientDisconnectedEvent{
+					Type:    EventClientDisconnected,
 					Payload: fmt.Sprintf("%s left", client.userData["name"]),
 				}
-				if msgBytes, err := json.Marshal(msg); err == nil {
-					c.send <- msgBytes
+				if b, err := json.Marshal(evt); err == nil {
+					c.send <- b
 				}
 			}
 			delete(h.rooms, id)
 		}
 		delete(h.clients, client.id)
 		close(client.send)
-
-		// FIXME Delete later
-		fmt.Println()
-		fmt.Printf("%s left, number of clients = %d, number of rooms = %d, ", client.userData["name"], len(h.clients), len(h.rooms))
-		for _, room := range h.rooms {
-			fmt.Printf("%v has %d clients", room.id, len(room.clients))
-			for _, client := range room.clients {
-				fmt.Printf(" -- client %s", client.userData["name"])
-			}
-			fmt.Println()
-		}
-		// FIXME Delete later
 	}
 }

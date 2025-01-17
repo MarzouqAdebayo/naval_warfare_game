@@ -3,10 +3,12 @@ import styled from "styled-components";
 const FooterComponent = styled.div`
   display: flex;
   position: relative;
+  font-size: 1rem;
+  line-height: 1.5rem;
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 1rem;
+  padding: auto;
   font-family: "Big Shoulders Text", cursive;
   background: rgb(126, 126, 126);
   background: linear-gradient(
@@ -31,7 +33,7 @@ const FooterComponent = styled.div`
 
 const FooterText = styled.p`
   color: #000129;
-  margin: auto 0;
+  margin: auto;
   & > a {
     transition: 0.5s;
   }

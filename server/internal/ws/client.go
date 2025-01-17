@@ -1,7 +1,6 @@
 package ws
 
 import (
-	"encoding/json"
 	"log"
 	"sync"
 	"time"
@@ -48,36 +47,19 @@ func (c *Client) readPump() {
 			break
 		}
 
-		c.mu.Lock()
-		c.isAlive = true
-		c.mu.Unlock()
-
-		var request Event
-		if err := json.Unmarshal(payload, &request); err != nil {
-			log.Printf("error parsing message: %v", err)
-			continue
-		}
-
-		switch request.Type {
+		evt, err := ParseEvent(payload)
+		log.Printf("%#+v", evt)
+		switch evt.GetType() {
 		case EventSetUserData:
-			var payload SetUserDataEvent
-			if err := json.Unmarshal(request.Payload, &payload); err != nil {
-				log.Printf("error parsing message: %v", err)
-				continue
-			}
-			c.hub.mu.Lock()
-			c.userData["name"] = payload.Username
-			c.hub.mu.Unlock()
+			SetUserDataEventHandler(evt, c)
 		case EventFindGame:
 			FindGameEventHandler(c)
+		case EventPlaceShip:
+			PlaceShipEventHandler(evt, c)
+		case EventQuitGame:
+			QuitGameEventHandler(evt, c)
 		case EventAttack:
-			var payload AttackEvent
-			if err := json.Unmarshal(request.Payload, &payload); err != nil {
-				log.Printf("error parsing message: %v", err)
-				continue
-			}
-			AttackEventHandler(payload, c)
-		default:
+			AttackEventHandler(evt, c)
 		}
 	}
 }

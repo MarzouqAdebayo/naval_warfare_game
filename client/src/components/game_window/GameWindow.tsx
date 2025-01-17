@@ -9,7 +9,7 @@ import { GameStart } from "./GameStart";
 const renderChild = (timeline: Timeline) => {
   switch (timeline) {
     case Timeline.Init:
-      return GameInit({ hey: "Hello World" });
+      return GameInit();
     case Timeline.Menu:
       return GameMenu();
     case Timeline.Setup:

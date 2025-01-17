@@ -5,6 +5,13 @@ import (
 	"math/rand/v2"
 )
 
+type PlaceInstruction string
+
+const (
+	Randomize PlaceInstruction = "randomize"
+	Customize PlaceInstruction = "customize"
+)
+
 type PlayerGameStruct struct {
 	Index          int        `json:"index"`
 	Board          *Board     `json:"board"`
@@ -17,6 +24,7 @@ type PlayerFleet []ShipInfoStruct
 
 var ErrCannotPlaceShip = errors.New("cannot place ship in this position")
 var ErrShipCollision = errors.New("there is a collision in this position")
+var ErrNoShipGap = errors.New("there is a ship on square over")
 
 func NewPlayer(index int, boardSize int) *PlayerGameStruct {
 	return &PlayerGameStruct{
@@ -31,6 +39,10 @@ func (p *PlayerGameStruct) GenerateAndPlaceShips() {
 	if p.Board.Size < 5 {
 		return
 	}
+	// Reset board and ships first
+	p.Board = GenerateEmptyBoard(p.Board.Size)
+	p.Ships = make([]Ship, 0)
+
 	ships := InitializeShips()
 	axes := [2]Axis{X, Y}
 	p.RemainingShips = len(ships)
@@ -95,6 +107,23 @@ func (p *PlayerGameStruct) getShipCoordinates(shipSize int, startPos Position, a
 		}
 		if p.Board.Squares[pos.X][pos.Y].State != Empty {
 			return nil, ErrShipCollision
+		}
+
+		// x, y - 1 (north),
+		if pos.Y-1 >= 0 && p.Board.Squares[pos.X][pos.Y-1].State != Empty {
+			return nil, ErrNoShipGap
+		}
+		// x, y + 1 (south),
+		if pos.Y+1 < p.Board.Size && p.Board.Squares[pos.X][pos.Y+1].State != Empty {
+			return nil, ErrNoShipGap
+		}
+		// (x - 1), y (west),
+		if pos.X-1 >= 0 && p.Board.Squares[pos.X-1][pos.Y].State != Empty {
+			return nil, ErrNoShipGap
+		}
+		// (x + 1), y (east)
+		if pos.X+1 < p.Board.Size && p.Board.Squares[pos.X+1][pos.Y].State != Empty {
+			return nil, ErrNoShipGap
 		}
 	}
 	return pos, nil

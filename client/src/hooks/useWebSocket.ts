@@ -1,9 +1,14 @@
 import { useState, useEffect, useCallback, useRef, useReducer } from "react";
 import { Action } from "../reducer";
-import { GameData, Timeline } from "../types";
+import {
+  GameData,
+  RandomShipPlacementPayload,
+  Timeline,
+  WSEvents,
+} from "../types";
 
 export interface WebSocketMessage<T = unknown> {
-  type: string;
+  type: WSEvents;
   payload: T;
 }
 
@@ -55,26 +60,33 @@ export const useWebSocket = <T = unknown, U = unknown>(
       try {
         const data: WebSocketMessage<T> = JSON.parse(event.data);
         switch (data.type) {
-          case "game_start":
-            console.log(data.payload);
-            dispatch({
-              type: "SET_SERVER_GAME_STATE",
-              payload: data.payload as GameData,
-            });
-            break;
-          case "game_update":
-            console.log(data.payload);
-            dispatch({
-              type: "SET_SERVER_GAME_STATE",
-              payload: data.payload as GameData,
-            });
-            break;
-          case "game_found":
+          case WSEvents.EventFindGameWaiting:
             // TODO Returns a room ID with intial room data
             // TODO Recieve room data from server
-            dispatch({ type: "SET_GAME_STATE" });
+            dispatch({
+              type: "SET_GAME_STATE",
+              payload: data.payload as { roomID: string },
+            });
             // Dispatch timeline instantly
             dispatch({ type: "CHANGE_TIMELINE", payload: Timeline.Setup });
+            break;
+          case WSEvents.EventFindGameStart:
+            dispatch({
+              type: "SET_SERVER_GAME_STATE",
+              payload: data.payload as GameData,
+            });
+            break;
+          case WSEvents.EventShipRandomized:
+            dispatch({
+              type: "SET_RANDOM_SHIP_PLACEMENT",
+              payload: data.payload as RandomShipPlacementPayload,
+            });
+            break;
+          case WSEvents.EventBroadcastAttack:
+            dispatch({
+              type: "SET_SERVER_GAME_STATE",
+              payload: data.payload as GameData,
+            });
             break;
           default:
             setData(data);

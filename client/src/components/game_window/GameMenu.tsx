@@ -1,34 +1,26 @@
-import { useState } from "react";
 import { useGameContext } from "../../GameController";
 import {
   ConnectionIndicator,
-  LoaderContainer,
-  LoaderWrapper,
-  LoaderCancelButton,
   MenuOption,
   MenuOptionsContainer,
   MenuTitle,
   MenuWindow,
 } from "../styled_components/gameControllerStyles";
+import { Timeline, WSEvents } from "../../types";
 
 export const GameMenu = () => {
   const {
+    dispatch,
     isConnected,
     sendMessage,
     state: { game },
   } = useGameContext();
-  const [loading, setIsLoading] = useState(true);
 
   const handleNewGame = () => {
     if (!game) {
-      setIsLoading(true);
-      sendMessage({ type: "find_game", payload: null });
+      sendMessage({ type: WSEvents.EventFindGame, payload: null });
+      dispatch({ type: "CHANGE_TIMELINE", payload: Timeline.Setup });
     }
-  };
-
-  const handleCancel = () => {
-    setIsLoading(false);
-    //sendMessage({ type: "cancel_find_game", payload: null });
   };
 
   return (
@@ -37,12 +29,6 @@ export const GameMenu = () => {
       <MenuOptionsContainer>
         <MenuOption onClick={handleNewGame}>New Game</MenuOption>
       </MenuOptionsContainer>
-      <LoaderWrapper show={loading}>
-        <LoaderContainer>
-          <div>Loading...</div>
-          <LoaderCancelButton onClick={handleCancel}>Cancel</LoaderCancelButton>
-        </LoaderContainer>
-      </LoaderWrapper>
       <ConnectionIndicator isConnected={isConnected} />
     </MenuWindow>
   );

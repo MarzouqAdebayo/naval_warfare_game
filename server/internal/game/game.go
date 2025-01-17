@@ -9,6 +9,13 @@ const (
 	SingleFire
 )
 
+type GameStatus int
+
+const (
+	Waiting GameStatus = iota
+	Ready
+)
+
 var GameModeName = map[GameMode]string{
 	ContinousFire: "continous fire",
 	SingleFire:    "single fire",
