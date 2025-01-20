@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	db "server/internal/db"
 	ws "server/internal/ws"
 )
 
@@ -14,11 +15,18 @@ func main() {
 	ctx, cancel := context.WithCancel(rootCtx)
 	defer cancel()
 
+	database, err := db.Init()
+	if err != nil {
+		log.Fatalf("Error initializing the database: %v", err)
+	}
+
+	db.Migrate(database)
+
 	apiHandler(ctx)
 
 	port := ":5000"
 	log.Printf("Server starting on %s", port)
-	err := http.ListenAndServe(port, nil)
+	err = http.ListenAndServe(port, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
