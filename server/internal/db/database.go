@@ -16,7 +16,7 @@ type Database struct {
 }
 
 // Init initializes the database connection
-func Init() (*Database, error) {
+func InitializeDBClient() (*Database, error) {
 	if err := godotenv.Load(); err != nil {
 		return nil, fmt.Errorf("Error loading .env file %v", err)
 	}

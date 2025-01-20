@@ -15,7 +15,7 @@ func main() {
 	ctx, cancel := context.WithCancel(rootCtx)
 	defer cancel()
 
-	database, err := db.Init()
+	database, err := db.InitializeDBClient()
 	if err != nil {
 		log.Fatalf("Error initializing the database: %v", err)
 	}
