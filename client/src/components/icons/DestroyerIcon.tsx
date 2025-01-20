@@ -2,16 +2,9 @@ import { ShipIconProps } from "../../types";
 import IconContainer from "./IconContainer";
 
 const DestroyerIcon: React.FC<ShipIconProps> = (props) => {
-  const { type, x, y, axis, length: ship_length, sunk } = props;
+  const { x, y, axis, length, sunk, ...restProps } = props;
   return (
-    <IconContainer
-      type={type}
-      x={x}
-      y={y}
-      axis={axis}
-      length={ship_length}
-      sunk={sunk}
-    >
+    <IconContainer $x={x} $y={y} $axis={axis} $length={length}>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="100%"
@@ -19,7 +12,7 @@ const DestroyerIcon: React.FC<ShipIconProps> = (props) => {
         viewBox={axis === "X" ? "0 0 153 69" : "0 0 69 153"}
         fill={sunk ? "grey" : "skyblue"}
         preserveAspectRatio="none"
-        {...props}
+        {...restProps}
       >
         <path
           transform={axis === "Y" ? "rotate(90, 35, 35)" : ""}

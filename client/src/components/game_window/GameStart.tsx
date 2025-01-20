@@ -6,42 +6,47 @@ import {
 import { useGameContext } from "../../GameController";
 import { FriendlyWatersGrid } from "./FriendlyWatersGrid";
 import { EnemyWatersGrid } from "./EnemyWatersGrid";
-
-const enum shipTypes {
-  Carrier = "Carrier",
-  Battleship = "Battleship",
-  Cruiser = "Cruiser",
-  Submarine = "Submarine",
-  Destroyer = "Destroyer",
-}
-
-const ships = [
-  { Type: shipTypes.Carrier, Size: 5, Hits: 0, Sunk: false },
-  { Type: shipTypes.Battleship, Size: 4, Hits: 0, Sunk: false },
-  { Type: shipTypes.Cruiser, Size: 3, Hits: 0, Sunk: false },
-  { Type: shipTypes.Submarine, Size: 3, Hits: 0, Sunk: false },
-  { Type: shipTypes.Destroyer, Size: 2, Hits: 0, Sunk: false },
-];
+import Announcement from "./Announcement";
+import { Timeline } from "../../types";
 
 export const GameStart = () => {
-  const { sendMessage } = useGameContext();
+  const {
+    dispatch,
+    state: { game },
+  } = useGameContext();
+
+  const handleAction = () => {
+    dispatch({
+      type: "CHANGE_TIMELINE_AND_RESET_GAME",
+      payload: Timeline.Menu,
+    });
+  };
+
+  let message = "Welcome to battleship";
+  if (game) {
+    message = game.message;
+  }
+
   return (
     <GameStartContainer>
-      <button
-        onClick={() => sendMessage({ type: "find_game", payload: null })}
-        style={{ position: "absolute", zIndex: 50, top: 0, left: 0 }}
-      >
-        sendM
-      </button>
-      <HudWindow>Hi</HudWindow>
-      <LabelContainer row="4">
+      <HudWindow>{message}</HudWindow>
+      <LabelContainer $row="4">
         <h1 style={{ margin: "auto auto 0" }}>Friendly waters</h1>
       </LabelContainer>
-      <LabelContainer row="2">
+      <LabelContainer $row="2">
         <h1 style={{ margin: "auto auto 0" }}>Enemy waters</h1>
       </LabelContainer>
       <FriendlyWatersGrid />
       <EnemyWatersGrid />
+      {game?.gameOver && (
+        <Announcement
+          text={`Game Over, you ${game.currentTurn === game.index ? "win" : "lose"}!!!`}
+          actionButtonText="Go to main menu"
+          _fn={handleAction}
+          duration={10000}
+          stayOnScreen={true}
+        />
+      )}
     </GameStartContainer>
   );
 };

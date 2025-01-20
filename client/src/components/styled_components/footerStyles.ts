@@ -10,13 +10,13 @@ const FooterComponent = styled.div`
   right: 0;
   padding: auto;
   font-family: "Big Shoulders Text", cursive;
-  background: rgb(126, 126, 126);
+  background: rgb(14, 57, 78);
   background: linear-gradient(
     90deg,
-    rgba(126, 126, 126, 1) 0%,
-    rgba(205, 205, 203, 1) 29%,
-    rgba(181, 181, 181, 1) 76%,
-    rgba(122, 122, 122, 1) 100%
+    rgba(14, 57, 78, 1) 0%,
+    rgba(22, 78, 106, 1) 29%,
+    rgba(18, 64, 87, 1) 76%,
+    rgba(14, 57, 78, 1) 100%
   );
   height: 4rem;
   justify-content: center;
@@ -32,7 +32,7 @@ const FooterComponent = styled.div`
 `;
 
 const FooterText = styled.p`
-  color: #000129;
+  color: #b8d8e8;
   margin: auto;
   & > a {
     transition: 0.5s;
@@ -40,10 +40,10 @@ const FooterText = styled.p`
   & > a:link,
   & > a:active,
   & > a:visited {
-    color: #000129;
+    color: #b8d8e8;
   }
   & > a:hover {
-    color: #333;
+    color: #ffffff;
     transition: 0.5s;
   }
 `;

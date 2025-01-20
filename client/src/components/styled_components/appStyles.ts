@@ -5,15 +5,15 @@ const StyledApp = styled.div`
   position: relative;
   width: 100%;
   flex-direction: column;
-  background: rgb(2, 0, 36);
+  background: rgb(6, 34, 51);
   background: linear-gradient(
     90deg,
-    rgba(2, 0, 36, 1) 0%,
-    rgba(0, 0, 61, 1) 29%,
-    rgba(0, 0, 64, 1) 76%,
-    rgba(1, 0, 37, 1) 100%
+    rgba(6, 34, 51, 1) 0%,
+    rgba(14, 57, 78, 1) 29%,
+    rgba(18, 64, 87, 1) 76%,
+    rgba(8, 45, 66, 1) 100%
   );
-  overflow: auto;
+  overflow-x: hidden;
 `;
 
 const GameWindowContainer = styled.div`

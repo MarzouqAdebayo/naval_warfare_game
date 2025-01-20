@@ -55,6 +55,15 @@ func InitializeShips() []Ship {
 	}
 }
 
+func GetTotalShipPositions() int {
+	sum := 0
+	ships := InitializeShips()
+	for _, ship := range ships {
+		sum += ship.Size
+	}
+	return sum
+}
+
 // For getting information about a players ship
 // for client side rendering
 func (ship *Ship) GetShipInfo() ShipInfoStruct {

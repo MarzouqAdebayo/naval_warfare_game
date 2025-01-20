@@ -11,8 +11,8 @@ interface GameContextType<T> {
   state: AppState;
   dispatch: React.Dispatch<Action>;
   status: ConnectionStatus;
+  connectionString: string;
   isConnected: boolean;
-  data: WebSocketMessage | null;
   sendMessage: (data: Omit<WebSocketMessage<T>, "from">) => void;
   reconnect: () => void;
 }
@@ -31,9 +31,19 @@ const GameContext = createContext<GameContextType<unknown>>(
   {} as GameContextType<unknown>,
 );
 
+//const SOCKET_URL = "ws://192.168.1.108:5000/ws";
+const SOCKET_URL = "ws://localhost:5000/ws";
+
 function GameProvider({ children }: GameProviderProps) {
-  const { state, dispatch, status, data, sendMessage, reconnect, isConnected } =
-    useWebSocket("ws://localhost:5000/ws", reducer, initialState);
+  const {
+    state,
+    dispatch,
+    status,
+    connectionString,
+    sendMessage,
+    reconnect,
+    isConnected,
+  } = useWebSocket(SOCKET_URL, reducer, initialState);
 
   return (
     <GameContext.Provider
@@ -41,7 +51,7 @@ function GameProvider({ children }: GameProviderProps) {
         state,
         dispatch,
         status,
-        data,
+        connectionString,
         sendMessage,
         reconnect,
         isConnected,

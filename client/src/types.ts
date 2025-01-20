@@ -6,12 +6,14 @@ export enum WSEvents {
   EventAttack = "attack",
   EventFindGame = "find_game",
   EventQuitGame = "quit_game",
-  EventPlaceShips = "place_ships",
+  EventPlaceShip = "place_ships",
+  EventShipReady = "ship_ready",
 
   // Incoming Events
   EventFindGameWaiting = "find_game_waiting",
   EventFindGameStart = "find_game_start",
   EventShipRandomized = "randomized_place_ship_response",
+  EventGameStart = "game_start",
   EventBroadcastAttack = "broadcast_attack",
   EventPong = "pong",
   EventOpponentQuit = "opponent_quit",
@@ -39,8 +41,10 @@ export type Player = {
 };
 
 export enum GameStatus {
-  Waiting = 0,
-  Ready = 1,
+  WaitingForOpponent = 0,
+  SettingShips = 1,
+  GameStart = 2,
+  Gameover = 4,
 }
 
 export enum GameMode {

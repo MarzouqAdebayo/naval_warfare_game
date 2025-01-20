@@ -1,6 +1,6 @@
 import { useGameContext } from "../../GameController";
 import shipTypes from "../../helpers/shipTypes";
-import { CellState, Player, Timeline } from "../../types";
+import { CellState, Player, Timeline, WSEvents } from "../../types";
 import ShotMarker from "../icons/ShotMarker";
 import {
   Cell,
@@ -18,12 +18,12 @@ const fillCells = (
     row.map((cell, j) => (
       <Cell
         key={`${i}-${j}`}
-        position={""}
-        highlight={cell === CellState.Ship}
-        timeline={timeline}
-        board="enemy"
-        shot={cell !== CellState.Empty}
-        cursor={cell === CellState.Empty ? "crosshair" : "not-allowed"}
+        $position={""}
+        $highlight={cell === CellState.Ship}
+        $timeline={timeline}
+        $board="enemy"
+        $shot={cell !== CellState.Empty}
+        $cursor={cell === CellState.Empty ? "crosshair" : "not-allowed"}
         onClick={() => _fn(i, j)}
       >
         {cell !== CellState.Empty && (
@@ -51,11 +51,11 @@ export const EnemyWatersGrid = () => {
       attackerIndex: game.index,
       attackPosition: { X: x, Y: y },
     };
-    sendMessage({ type: "attack", payload });
+    sendMessage({ type: WSEvents.EventAttack, payload });
   };
 
   return (
-    <WatersContainer row="3">
+    <WatersContainer $row="3">
       <SetupGridContainer>
         <GameBoardGrid>
           {player.fleet.map((ship) =>

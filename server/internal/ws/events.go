@@ -18,11 +18,13 @@ const (
 	EventFindGame    EventType = "find_game"
 	EventQuitGame    EventType = "quit_game"
 	EventPlaceShip   EventType = "place_ships"
+	EventShipReady   EventType = "ship_ready"
 
 	// Outgoing Events
 	EventFindGameWaiting    EventType = "find_game_waiting"
 	EventFindGameStart      EventType = "find_game_start"
 	EventShipRandomized     EventType = "randomized_place_ship_response"
+	EventGameStart          EventType = "game_start"
 	EventBroadcastAttack    EventType = "broadcast_attack"
 	EventPong               EventType = "pong"
 	EventOpponentQuit       EventType = "opponent_quit"
@@ -41,7 +43,7 @@ type SetUserDataPayload struct {
 }
 
 // FindGamePayload represents the payload for find_game event
-type FindGameStartPayload struct {
+type GameRoomPayload struct {
 	RoomID      string        `json:"roomID"`
 	Index       int           `json:"index"`
 	Players     [2]PlayerData `json:"players"`
@@ -50,7 +52,7 @@ type FindGameStartPayload struct {
 	GameOver    bool          `json:"gameOver"`
 	Mode        g.GameMode    `json:"mode"`
 	Winner      int           `json:"winner"`
-	Status      g.GameStatus  `json:"status"`
+	Status      GameStatus    `json:"status"`
 }
 
 // FindGamePayload represents the payload for find_game event
@@ -72,6 +74,12 @@ type PlaceShipPayload struct {
 	PlayerIndex int                `json:"playerIndex"`
 }
 
+// ShipReadyPayload represents the payload for when a player has placed their fleet
+type ShipReadyPayload struct {
+	RoomID      string `json:"roomID"`
+	PlayerIndex int    `json:"playerIndex"`
+}
+
 // ShipRandomizedPayload respresents the payload for placing ships randomly
 type ShipRandomizedPayload struct {
 	Message    string     `json:"message"`
@@ -88,6 +96,7 @@ type BroadcastAttackPayload struct {
 	GameOver    bool          `json:"gameOver"`
 	Mode        g.GameMode    `json:"mode"`
 	Winner      int           `json:"winner"`
+	Status      GameStatus    `json:"status"`
 }
 
 // EventPongPayload
@@ -118,8 +127,13 @@ type FindGameWaitingEvent struct {
 }
 
 type FindGameStartEvent struct {
-	Type    EventType            `json:"type"`
-	Payload FindGameStartPayload `json:"payload"`
+	Type    EventType       `json:"type"`
+	Payload GameRoomPayload `json:"payload"`
+}
+
+type GameStartEvent struct {
+	Type    EventType       `json:"type"`
+	Payload GameRoomPayload `json:"payload"`
 }
 
 type QuitGameEvent struct {
@@ -130,6 +144,11 @@ type QuitGameEvent struct {
 type PlaceShipEvent struct {
 	Type    EventType        `json:"type"`
 	Payload PlaceShipPayload `json:"payload"`
+}
+
+type ShipReadyEvent struct {
+	Type    EventType        `json:"type"`
+	Payload ShipReadyPayload `json:"payload"`
 }
 
 type ShipRandomizedEvent struct {
@@ -206,6 +225,14 @@ func (e *PlaceShipEvent) GetPayload() interface{} {
 	return e.Payload
 }
 
+func (e *ShipReadyEvent) GetType() EventType {
+	return EventShipReady
+}
+
+func (e *ShipReadyEvent) GetPayload() interface{} {
+	return e.Payload
+}
+
 func (e *AttackEvent) GetType() EventType {
 	return EventAttack
 }
@@ -249,6 +276,13 @@ func ParseEvent(data []byte) (Event, error) {
 		if err := json.Unmarshal(data, &event); err != nil {
 			fmt.Printf("%v", err)
 			return nil, fmt.Errorf("failed to parse ShipRandomizedEvent event: %w", err)
+		}
+		return &event, nil
+	case EventShipReady:
+		var event ShipReadyEvent
+		if err := json.Unmarshal(data, &event); err != nil {
+			fmt.Printf("%v", err)
+			return nil, fmt.Errorf("failed to parse ShipReadyEvent event: %w", err)
 		}
 		return &event, nil
 	case EventQuitGame:
@@ -334,6 +368,75 @@ func PlaceShipEventHandler(e Event, c *Client) {
 	}
 }
 
+func ShipReadyEventHandler(e Event, c *Client) {
+	fmt.Println("Triggered ship ready event")
+	shipReadyEvent, ok := e.(*ShipReadyEvent)
+	if !ok {
+		return
+	}
+	roomID := shipReadyEvent.Payload.RoomID
+	room, ok := c.hub.rooms[roomID]
+	if !ok {
+		fmt.Println("room not found")
+		return
+	}
+	playerIndex := shipReadyEvent.Payload.PlayerIndex
+	if playerIndex+1 > len(room.Players) {
+		fmt.Println("index invalid")
+		return
+	}
+	playerClient := room.clients[playerIndex]
+	if playerClient != c {
+		fmt.Println("client mismatch")
+		return
+	}
+	room.readinessIncr += 0.5
+	fmt.Printf("room readinessIncr %#+v", room.readinessIncr)
+	if room.readinessIncr == 1 {
+		room.gameStatus = GameStart
+
+		message := "Hi Captain, the fleet and ready you've been given orders to eliminate the enemy, good luck sailor"
+		for i, c := range room.clients {
+			outgoingEvent := GameStartEvent{
+				Type: EventGameStart,
+				Payload: GameRoomPayload{
+					RoomID:      room.id,
+					Index:       i,
+					Players:     [2]PlayerData{},
+					Message:     message,
+					CurrentTurn: room.CurrentTurn,
+					GameOver:    room.GameOver,
+					Mode:        room.Mode,
+					Winner:      room.CurrentTurn,
+					Status:      room.gameStatus,
+				},
+			}
+
+			totalNoOfShips := g.GetTotalShipPositions()
+			// Send plain board for player
+			player1 := room.Players[i]
+			if !hasPlacedShips(player1.Board.Squares, totalNoOfShips) {
+				player1.GenerateAndPlaceShips()
+			}
+			outgoingEvent.Payload.Players[i] = PlayerData{Board: player1.Board.PlainBoard(), Fleet: player1.GetPlainFleetInfo()}
+
+			// Send masked board for opponent
+			player2 := room.Players[1-i]
+			if !hasPlacedShips(player2.Board.Squares, totalNoOfShips) {
+				player1.GenerateAndPlaceShips()
+			}
+			outgoingEvent.Payload.Players[1-i] = PlayerData{Board: player2.Board.MaskBoard(), Fleet: player2.GetMaskedFleetInfo()}
+
+			b, err := json.Marshal(outgoingEvent)
+			if err != nil {
+				fmt.Printf("failed to marshal FindGameWaitingEvent: %v", err)
+				return
+			}
+			c.send <- b
+		}
+	}
+}
+
 func QuitGameEventHandler(e Event, c *Client) {
 	roomEvent, ok := e.(*QuitGameEvent)
 	if !ok {
@@ -347,7 +450,9 @@ func QuitGameEventHandler(e Event, c *Client) {
 	if b, err := json.Marshal(evt); err == nil {
 		c.send <- b
 	}
+	c.hub.mu.Lock()
 	delete(c.hub.rooms, roomID)
+	c.hub.mu.Unlock()
 }
 
 func FindGameEventHandler(c *Client) {
@@ -359,17 +464,13 @@ func FindGameEventHandler(c *Client) {
 	if room != nil {
 		room.clients = append(room.clients, c)
 		room.BattleshipGame = *g.NewBattleshipGame(10)
-
-		// for i := range room.clients {
-		// 	player := room.BattleshipGame.Players[i]
-		// 	player.GenerateAndPlaceShips()
-		// }
+		room.gameStatus = SettingShips
 
 		message := "Hi Captain, you've been given orders to eliminate the enemy, good luck sailor"
 		for i, c := range room.clients {
 			outgoingEvent := FindGameStartEvent{
 				Type: EventFindGameStart,
-				Payload: FindGameStartPayload{
+				Payload: GameRoomPayload{
 					RoomID:      room.id,
 					Index:       i,
 					Players:     [2]PlayerData{},
@@ -378,7 +479,7 @@ func FindGameEventHandler(c *Client) {
 					GameOver:    room.GameOver,
 					Mode:        room.Mode,
 					Winner:      room.CurrentTurn,
-					Status:      g.Ready,
+					Status:      room.gameStatus,
 				},
 			}
 
@@ -401,8 +502,10 @@ func FindGameEventHandler(c *Client) {
 	} else {
 		newRoomID := fmt.Sprintf("room-%d", c.hub.lastRoomID)
 		newRoom := &GameRoom{
-			id:      newRoomID,
-			clients: make([]*Client, 0),
+			id:            newRoomID,
+			clients:       make([]*Client, 0),
+			gameStatus:    WaitingForOpponent,
+			readinessIncr: 0,
 		}
 		newRoom.clients = append(newRoom.clients, c)
 		c.hub.rooms[newRoomID] = newRoom
@@ -456,6 +559,10 @@ func AttackEventHandler(e Event, c *Client) {
 				Winner:      room.CurrentTurn,
 			},
 		}
+
+		if room.GameOver {
+			room.gameStatus = GameOver
+		}
 		// Send plain board for player
 		player1 := room.Players[i]
 		outgoingEvent.Payload.Players[i] = PlayerData{Board: player1.Board.PlainBoard(), Fleet: player1.GetPlainFleetInfo()}
@@ -468,6 +575,13 @@ func AttackEventHandler(e Event, c *Client) {
 			return
 		}
 		c.send <- b
+
+		if room.GameOver {
+			c.hub.mu.Lock()
+			delete(c.hub.rooms, room.id)
+			c.hub.mu.Unlock()
+			fmt.Printf("No of room left, %d \n%#+v\n", len(c.hub.rooms), c.hub.rooms)
+		}
 	}
 }
 
@@ -480,4 +594,16 @@ func findAvailableRoom(rooms map[string]*GameRoom) *GameRoom {
 		return room
 	}
 	return nil
+}
+
+func hasPlacedShips(square g.Squares, noOfShips int) bool {
+	count := 0
+	for _, row := range square {
+		for _, col := range row {
+			if col.State == g.HasShip {
+				count++
+			}
+		}
+	}
+	return count == noOfShips
 }

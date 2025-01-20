@@ -14,12 +14,12 @@ const fillCells = (timeline: Timeline, player: Player) => {
     row.map((cell, j) => (
       <Cell
         key={`${i}-${j}`}
-        position={""}
-        highlight={false}
-        timeline={timeline}
-        board="friendly"
-        shot={false}
-        cursor={""}
+        $position={""}
+        $highlight={false}
+        $timeline={timeline}
+        $board="friendly"
+        $shot={false}
+        $cursor={""}
       >
         {![CellState.Empty, CellState.Ship].includes(cell) && (
           <ShotMarker hit={cell === CellState.Hit || cell === CellState.Sunk} />
@@ -39,7 +39,7 @@ export const FriendlyWatersGrid = () => {
   const player = players[index];
 
   return (
-    <WatersContainer row="5">
+    <WatersContainer $row="5">
       <SetupGridContainer>
         <GameBoardGrid>
           {player.fleet.map((ship) =>

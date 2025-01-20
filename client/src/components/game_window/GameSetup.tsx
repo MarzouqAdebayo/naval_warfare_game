@@ -19,7 +19,7 @@ export const GameSetup = () => {
   const {
     dispatch,
     sendMessage,
-    state: { timeline, game },
+    state: { timeline, game, name },
   } = useGameContext();
   const [axis, setAxis] = useState<"X" | "Y">("X");
   const [loading, setIsLoading] = useState(false);
@@ -33,15 +33,41 @@ export const GameSetup = () => {
     sendMessage({ type: WSEvents.EventQuitGame, payload: null });
   };
 
-  const handleLeaveRoom = () => {};
+  const handleLeaveRoom = (roomID: string) => {
+    setIsLoading(false);
+    sendMessage({ type: WSEvents.EventQuitGame, payload: null });
+  };
 
   const handleGoToMainMenu = () => {
     dispatch({ type: "CHANGE_TIMELINE", payload: Timeline.Menu });
   };
 
+  const handleGenShips = () => {
+    if (!game) return;
+    sendMessage({
+      type: WSEvents.EventPlaceShip,
+      payload: {
+        instruction: "randomize",
+        roomID: game.roomID,
+        playerIndex: game.index,
+      },
+    });
+  };
+
+  const handleReady = () => {
+    if (!game) return;
+    sendMessage({
+      type: WSEvents.EventShipReady,
+      payload: {
+        roomID: game.roomID,
+        playerIndex: game.index,
+      },
+    });
+  };
+
   if (!game) {
     return (
-      <LoaderWrapper show={true}>
+      <LoaderWrapper $show={true}>
         <LoaderContainer>
           <LoaderCancelButton onClick={handleGoToMainMenu}>
             Main menu
@@ -51,12 +77,12 @@ export const GameSetup = () => {
     );
   }
 
-  if (game.status === GameStatus.Waiting) {
+  if (game.status === GameStatus.WaitingForOpponent) {
     return (
-      <LoaderWrapper show={true}>
+      <LoaderWrapper $show={true}>
         <LoaderContainer>
           <div>Waiting for player to join room...</div>
-          <LoaderCancelButton onClick={handleLeaveRoom}>
+          <LoaderCancelButton onClick={() => handleLeaveRoom(game.roomID)}>
             Leave room
           </LoaderCancelButton>
         </LoaderContainer>
@@ -64,25 +90,15 @@ export const GameSetup = () => {
     );
   }
 
-  const handleGenShips = () => {
-    sendMessage({
-      type: WSEvents.EventPlaceShips,
-      payload: {
-        instruction: "randomize",
-        roomID: game.roomID,
-        playerIndex: game.index,
-      },
-    });
-  };
-
   const { players } = game;
   const { board, fleet } = players[game.index];
 
   return (
     <SetupWindow>
-      <SetupTitle>, Place Your Ships</SetupTitle>
+      <SetupTitle>{name}, Place Your Ships</SetupTitle>
       <AxisButton onClick={handleSetAxis}>AXIS: {axis}</AxisButton>
       <AxisButton onClick={handleGenShips}>Randomize</AxisButton>
+      <AxisButton onClick={handleReady}>Ready</AxisButton>
       <GridOverlayContainer>
         <SetupGridContainer>
           <GameBoardGrid>
@@ -96,12 +112,12 @@ export const GameSetup = () => {
                 return (
                   <Cell
                     key={i}
-                    position=""
-                    board="friendly"
-                    highlight={cell === "Sunk"}
-                    cursor={"pointer"}
-                    timeline={timeline}
-                    shot={true}
+                    $position=""
+                    $board="friendly"
+                    $highlight={cell === "Sunk"}
+                    $cursor={"pointer"}
+                    $timeline={timeline}
+                    $shot={true}
                   />
                 );
               });
@@ -109,12 +125,16 @@ export const GameSetup = () => {
           </GameBoardGrid>
         </SetupGridContainer>
       </GridOverlayContainer>
-      <LoaderWrapper show={loading}>
-        <LoaderContainer>
-          <div>Loading...</div>
-          <LoaderCancelButton onClick={handleCancel}>Cancel</LoaderCancelButton>
-        </LoaderContainer>
-      </LoaderWrapper>
+      {
+        <LoaderWrapper $show={loading}>
+          <LoaderContainer>
+            <div>Loading...</div>
+            <LoaderCancelButton onClick={handleCancel}>
+              Cancel
+            </LoaderCancelButton>
+          </LoaderContainer>
+        </LoaderWrapper>
+      }
     </SetupWindow>
   );
 };

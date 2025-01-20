@@ -17,18 +17,18 @@ const InitWindow = styled.div`
   padding: 1rem 4rem;
 `;
 
-const ConnectionIndicator = styled.div<{ isConnected: boolean }>`
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  height: 20px;
-  width: 20px;
-  border-radius: 50%;
-  background-color: ${(props) => (props.isConnected ? "#15803d" : "#b91c1c")};
+const buttonStyles = `
+  background-color: rgba(18, 64, 87, 1);
+  color: #b8d8e8;
+  border: 1px solid #b8d8e8;
+  transition: 0.3s;
+  &:hover {
+    background-color: rgba(22, 78, 106, 1);
+  }
 `;
 
 const PlayerForm = styled.form`
-  background-color: #fff;
+  color: #b8d8e8;
   display: flex;
   height: 100%;
   width: 100%;
@@ -45,10 +45,22 @@ const PlayerForm = styled.form`
     padding: 0.8rem;
     cursor: pointer;
     border-radius: 16px;
+    background-color: rgba(18, 64, 87, 1);
+    color: #b8d8e8;
+    border: 1px solid #b8d8e8;
+    &:hover {
+      background-color: rgba(22, 78, 106, 1);
+    }
   }
   & > input {
     padding: 1rem;
     border-radius: 16px;
+    background-color: rgba(6, 34, 51, 0.7);
+    color: #b8d8e8;
+    border: 1px solid #b8d8e8;
+    &::placeholder {
+      color: rgba(184, 216, 232, 0.7);
+    }
   }
 `;
 
@@ -73,6 +85,7 @@ const MenuTitle = styled.h1`
 const MenuOptionsContainer = styled.div``;
 
 const MenuOption = styled.button`
+  ${buttonStyles}
   padding: 0.5rem;
   margin: auto;
   font-size: 1.5rem;
@@ -82,15 +95,16 @@ const MenuOption = styled.button`
   }
 `;
 
-const LoaderWrapper = styled.div<{ show: boolean }>`
+const LoaderWrapper = styled.div<{ $show: boolean }>`
   position: absolute;
   top: 0;
   bottom: 0;
   right: 0;
   left: 0;
-  z-index: ${(props) => (props.show ? "45" : "-45")};
-  background-color: rgb(2, 0, 36);
+  z-index: ${(props) => (props.$show ? "45" : "-45")};
+  background-color: rgba(6, 34, 51, 0.95);
   font-size: 2rem;
+  color: #b8d8e8;
 `;
 
 const LoaderContainer = styled.div`
@@ -104,6 +118,7 @@ const LoaderContainer = styled.div`
 `;
 
 const LoaderCancelButton = styled.button`
+  ${buttonStyles}
   padding: 0.5rem;
   font-size: 1.5rem;
   cursor: pointer;
@@ -132,6 +147,7 @@ const SetupTitle = styled.h1`
 `;
 
 const AxisButton = styled.button`
+  ${buttonStyles}
   padding: 0.5rem;
   margin: auto;
   font-size: 1.5rem;
@@ -172,32 +188,32 @@ const GameBoardGrid = styled.div`
 `;
 
 const Cell = styled.div<{
-  position: string;
-  highlight: boolean;
-  timeline: Timeline;
-  board: string;
-  shot: boolean;
-  cursor: string;
+  $position: string;
+  $highlight: boolean;
+  $timeline: Timeline;
+  $board: string;
+  $shot: boolean;
+  $cursor: string;
 }>`
-  border: 1px solid white;
+  border: 1px solid #b8d8e8;
   height: 100%;
   width: 100%;
   transition: 0.3s;
-  position: ${(props) => props.position};
+  position: ${(props) => props.$position};
   background-color: ${(props) =>
-    props.highlight ? "rgba(255, 255, 255, 0.7)" : ""};
+    props.$highlight ? "rgba(184, 216, 232, 0.3)" : ""};
   &:hover {
     background-color: ${(props) =>
-      props.timeline === Timeline.GameStart && props.board === "friendly"
+      props.$timeline === Timeline.GameStart && props.$board === "friendly"
         ? "transparent"
-        : props.board === "enemy" && !props.shot
-          ? "rgba(60, 255, 60, 0.6)"
-          : props.shot
+        : props.$board === "enemy" && !props.$shot
+          ? "rgba(22, 78, 106, 0.6)"
+          : props.$shot
             ? "rgba(255, 60, 60, 0.6)"
-            : props.highlight
+            : props.$highlight
               ? ""
               : "rgba(255, 60, 60, 0.6)"};
-    cursor: ${(props) => props.cursor};
+    cursor: ${(props) => props.$cursor};
   }
 `;
 
@@ -219,13 +235,13 @@ const GameStartContainer = styled.div`
   }
 `;
 
-const WatersContainer = styled.div<{ row: string }>`
+const WatersContainer = styled.div<{ $row: string }>`
   height: 100%;
   width: 100%;
   position: relative;
   display: flex;
   @media (max-width: 750px) {
-    grid-row: ${(props) => props.row};
+    grid-row: ${(props) => props.$row};
   }
 `;
 
@@ -236,18 +252,19 @@ const HudWindow = styled.div`
   text-align: center;
   grid-column: 1 / span 2;
   width: 70%;
-  border: 1px solid #ddd;
+  border: 1px solid #b8d8e8;
   border-radius: 1rem;
-  background: rgb(55, 55, 55);
+  background: rgb(6, 34, 51);
   background: linear-gradient(
     90deg,
-    rgba(55, 55, 55, 1) 0%,
-    rgba(41, 41, 41, 1) 29%,
-    rgba(41, 41, 41, 1) 76%,
-    rgba(56, 56, 56, 1) 100%
+    rgba(6, 34, 51, 1) 0%,
+    rgba(14, 57, 78, 1) 29%,
+    rgba(18, 64, 87, 1) 76%,
+    rgba(8, 45, 66, 1) 100%
   );
   font-family: "Special Elite", monospace;
   font-size: 1.4rem;
+  color: #b8d8e8;
   @media (max-width: 1050px) {
     font-size: 1rem;
     padding: 10px;
@@ -258,23 +275,23 @@ const HudWindow = styled.div`
   }
 `;
 
-const VolumeContainer = styled.div<{ timeline: Timeline }>`
+const VolumeContainer = styled.div<{ $timeline: Timeline }>`
   display: flex;
   animation: fadeinslow 5s;
   position: absolute;
-  top: ${(props) => (props.timeline === Timeline.Init ? "0" : "-3rem")};
-  right: ${(props) => (props.timeline === Timeline.Init ? "" : "3rem")};
+  top: ${(props) => (props.$timeline === Timeline.Init ? "0" : "-3rem")};
+  right: ${(props) => (props.$timeline === Timeline.Init ? "" : "3rem")};
   @media (max-width: 450px) {
-    right: ${(props) => (props.timeline === Timeline.Init ? "" : "1.5rem")};
+    right: ${(props) => (props.$timeline === Timeline.Init ? "" : "1.5rem")};
   }
 `;
 
-const LabelContainer = styled.div<{ row: string }>`
+const LabelContainer = styled.div<{ $row: string }>`
   display: flex;
   width: 100%;
   text-align: center;
   @media (max-width: 750px) {
-    grid-row: ${(props) => `${props.row} / span 1`};
+    grid-row: ${(props) => `${props.$row} / span 1`};
   }
 `;
 
@@ -288,7 +305,6 @@ export {
   LoaderWrapper,
   LoaderContainer,
   LoaderCancelButton,
-  ConnectionIndicator,
   PlayerForm,
   SetupWindow,
   SetupTitle,

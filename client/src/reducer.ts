@@ -20,25 +20,33 @@ const newGame = (roomID: string): GameData => {
 };
 
 export type Action =
-  | { type: "INITIALIZE"; payload: object }
   | { type: "CHANGE_TIMELINE"; payload: Timeline }
-  | { type: "SET_NAME"; payload: string }
-  | { type: "SET_GAME_STATE"; payload: { roomID: string } }
+  | { type: "SET_PLAYER_NAME"; payload: string }
+  | { type: "INITIALIZE_NEW_ROOM"; payload: { roomID: string } }
+  | { type: "FIND_GAME_START"; payload: GameData }
   | { type: "SET_RANDOM_SHIP_PLACEMENT"; payload: RandomShipPlacementPayload }
-  | { type: "SET_SERVER_GAME_STATE"; payload: GameData }
-  | { type: "UPDATE_SERVER_GAME_STATE"; payload: GameData }
-  | { type: "STATUS"; payload: object };
+  | { type: "GAME_START"; payload: GameData }
+  | { type: "BROADCAST_ATTACK"; payload: GameData }
+  | { type: "CHANGE_TIMELINE_AND_RESET_GAME"; payload: Timeline };
 
 export default function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
-    case "INITIALIZE":
-      return state;
     case "CHANGE_TIMELINE":
       return { ...state, timeline: action.payload };
-    case "SET_NAME":
+    case "SET_PLAYER_NAME":
       return { ...state, name: action.payload };
-    case "SET_GAME_STATE":
-      return { ...state, game: newGame(action.payload.roomID) };
+    case "INITIALIZE_NEW_ROOM":
+      return {
+        ...state,
+        game: newGame(action.payload.roomID),
+        timeline: Timeline.Setup,
+      };
+    case "FIND_GAME_START": {
+      if (state.timeline === Timeline.Setup) {
+        return { ...state, game: action.payload };
+      }
+      return { ...state, game: action.payload, timeline: Timeline.Setup };
+    }
     case "SET_RANDOM_SHIP_PLACEMENT": {
       const { message, playerData } = action.payload;
       if (!state.game) {
@@ -51,58 +59,15 @@ export default function reducer(state: AppState, action: Action): AppState {
         game: { ...state.game, message, players: playersCopy },
       };
     }
-    case "SET_SERVER_GAME_STATE": {
-      const {
-        roomID,
-        index,
-        message,
-        players,
-        currentTurn,
-        gameOver,
-        mode,
-        status,
-      } = action.payload;
-      const game: GameData = {
-        roomID,
-        index,
-        message,
-        players,
-        currentTurn,
-        gameOver,
-        mode,
-        winner: "",
-        status,
-      };
-      return { ...state, game };
+    case "GAME_START": {
+      return { ...state, game: action.payload, timeline: Timeline.GameStart };
     }
-    case "UPDATE_SERVER_GAME_STATE": {
-      console.log(action.payload);
-      const {
-        roomID,
-        index,
-        message,
-        players,
-        currentTurn,
-        gameOver,
-        mode,
-        status,
-      } = action.payload;
-      const game: GameData = {
-        roomID,
-        index,
-        message,
-        players,
-        currentTurn,
-        gameOver,
-        mode,
-        winner: "",
-        status,
-      };
-      return { ...state, game };
+    case "BROADCAST_ATTACK": {
+      return { ...state, game: action.payload };
     }
-    case "STATUS":
-      return state;
+    case "CHANGE_TIMELINE_AND_RESET_GAME":
+      return { ...state, game: null, timeline: action.payload };
     default:
-      throw new Error("");
+      throw new Error(`Event does not exist`);
   }
 }
