@@ -440,7 +440,9 @@ func QuitGameEventHandler(e Event, c *Client) {
 	if b, err := json.Marshal(evt); err == nil {
 		c.send <- b
 	}
+	c.hub.mu.Lock()
 	delete(c.hub.rooms, roomID)
+	c.hub.mu.Unlock()
 }
 
 func FindGameEventHandler(c *Client) {
@@ -563,6 +565,13 @@ func AttackEventHandler(e Event, c *Client) {
 			return
 		}
 		c.send <- b
+
+		if room.GameOver {
+			c.hub.mu.Lock()
+			delete(c.hub.rooms, room.id)
+			c.hub.mu.Unlock()
+			fmt.Printf("No of room left, %d \n%#+v\n", len(c.hub.rooms), c.hub.rooms)
+		}
 	}
 }
 

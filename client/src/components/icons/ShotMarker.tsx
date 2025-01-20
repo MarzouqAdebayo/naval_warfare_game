@@ -16,7 +16,7 @@ const ShotCell = styled.div`
 `;
 
 const ShotMarker: React.FC<ShotMarkerProps> = (props) => {
-  const { hit } = props;
+  const { hit, ...restProps } = props;
   return (
     <ShotCell>
       <svg
@@ -24,7 +24,7 @@ const ShotMarker: React.FC<ShotMarkerProps> = (props) => {
         height={16}
         fill={hit ? "red" : "white"}
         xmlns="http://www.w3.org/2000/svg"
-        {...props}
+        {...restProps}
       >
         <circle cx={8} cy={8} r={8} />
       </svg>

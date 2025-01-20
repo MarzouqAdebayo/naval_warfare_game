@@ -26,7 +26,8 @@ export type Action =
   | { type: "FIND_GAME_START"; payload: GameData }
   | { type: "SET_RANDOM_SHIP_PLACEMENT"; payload: RandomShipPlacementPayload }
   | { type: "GAME_START"; payload: GameData }
-  | { type: "BROADCAST_ATTACK"; payload: GameData };
+  | { type: "BROADCAST_ATTACK"; payload: GameData }
+  | { type: "CHANGE_TIMELINE_AND_RESET_GAME"; payload: Timeline };
 
 export default function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
@@ -64,6 +65,8 @@ export default function reducer(state: AppState, action: Action): AppState {
     case "BROADCAST_ATTACK": {
       return { ...state, game: action.payload };
     }
+    case "CHANGE_TIMELINE_AND_RESET_GAME":
+      return { ...state, game: null, timeline: action.payload };
     default:
       throw new Error(`Event does not exist`);
   }

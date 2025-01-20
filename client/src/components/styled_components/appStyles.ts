@@ -13,7 +13,7 @@ const StyledApp = styled.div`
     rgba(18, 64, 87, 1) 76%,
     rgba(8, 45, 66, 1) 100%
   );
-  overflow: auto;
+  overflow-x: hidden;
 `;
 
 const GameWindowContainer = styled.div`

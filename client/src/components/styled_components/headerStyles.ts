@@ -12,17 +12,17 @@ const HeaderComponent = styled.div`
   border-bottom: 1px solid rgba(255, 255, 255, 0.2); // Subtle separator
 `;
 
-const Logo = styled.img<{ large: boolean }>`
+const Logo = styled.img<{ $large: boolean }>`
   margin: auto;
-  height: ${(props) => (props.large ? "auto" : "3rem")};
+  height: ${(props) => (props.$large ? "auto" : "3rem")};
   @media (max-width: 1000px) {
-    height: ${(props) => (props.large ? "3rem" : "2rem")};
+    height: ${(props) => (props.$large ? "3rem" : "2rem")};
   }
   animation: fadeinlogo 1.5s ease-in-out forwards;
   filter: drop-shadow(0 0 4px rgba(184, 216, 232, 0.4)); // Subtle glow effect
 `;
 
-const Status = styled.div<{ connected: boolean }>`
+const Status = styled.div<{ $connected: boolean }>`
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -34,8 +34,8 @@ const Status = styled.div<{ connected: boolean }>`
     width: 0.8rem;
     height: 0.8rem;
     border-radius: 50%;
-    background-color: ${(props) => (props.connected ? "#00ff00" : "#ff0000")};
-    box-shadow: 0 0 6px ${(props) => (props.connected ? "#00ff00" : "#ff0000")};
+    background-color: ${(props) => (props.$connected ? "#00ff00" : "#ff0000")};
+    box-shadow: 0 0 6px ${(props) => (props.$connected ? "#00ff00" : "#ff0000")};
   }
 `;
 

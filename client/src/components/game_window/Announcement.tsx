@@ -25,7 +25,7 @@ const fadeOut = keyframes`
 `;
 
 // Styled Components
-const Overlay = styled.div<{ visible: boolean }>`
+const Overlay = styled.div<{ $visible: boolean }>`
   position: fixed;
   top: 0;
   left: 0;
@@ -36,9 +36,9 @@ const Overlay = styled.div<{ visible: boolean }>`
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  opacity: ${(props) => (props.visible ? 1 : 0)};
-  pointer-events: ${(props) => (props.visible ? "auto" : "none")};
-  animation: ${(props) => (props.visible ? fadeIn : fadeOut)} 0.5s ease;
+  opacity: ${(props) => (props.$visible ? 1 : 0)};
+  pointer-events: ${(props) => (props.$visible ? "auto" : "none")};
+  animation: ${(props) => (props.$visible ? fadeIn : fadeOut)} 0.5s ease;
 `;
 
 const AnnouncementBox = styled.div`
@@ -88,11 +88,13 @@ const ActionButton = styled.button`
 
 const Announcement = ({
   text,
+  actionButtonText,
   _fn,
   duration = 5000,
   stayOnScreen = false,
 }: {
   text: string;
+  actionButtonText: string;
   _fn: () => void;
   duration?: number;
   stayOnScreen?: boolean;
@@ -109,10 +111,10 @@ const Announcement = ({
   if (!visible) return null;
 
   return (
-    <Overlay visible={visible}>
+    <Overlay $visible={visible}>
       <AnnouncementBox>
         <AnnouncementText>{text}</AnnouncementText>
-        <ActionButton onClick={_fn}>Take Action</ActionButton>
+        <ActionButton onClick={_fn}>{actionButtonText}</ActionButton>
       </AnnouncementBox>
     </Overlay>
   );

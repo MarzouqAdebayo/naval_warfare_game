@@ -18,8 +18,8 @@ export default function Header() {
   return (
     <>
       <HeaderComponent>
-        <Logo large={timeline === Timeline.Init} src={logo} />
-        <Status connected={isConnected}>
+        <Logo $large={timeline === Timeline.Init} src={logo} />
+        <Status $connected={isConnected}>
           <div className="indicator" />
           {connectionString}
         </Status>

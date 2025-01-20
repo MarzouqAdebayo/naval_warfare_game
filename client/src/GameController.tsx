@@ -31,6 +31,9 @@ const GameContext = createContext<GameContextType<unknown>>(
   {} as GameContextType<unknown>,
 );
 
+//const SOCKET_URL = "ws://192.168.1.108:5000/ws";
+const SOCKET_URL = "ws://localhost:5000/ws";
+
 function GameProvider({ children }: GameProviderProps) {
   const {
     state,
@@ -40,7 +43,7 @@ function GameProvider({ children }: GameProviderProps) {
     sendMessage,
     reconnect,
     isConnected,
-  } = useWebSocket("ws://192.168.1.108:5000/ws", reducer, initialState);
+  } = useWebSocket(SOCKET_URL, reducer, initialState);
 
   return (
     <GameContext.Provider

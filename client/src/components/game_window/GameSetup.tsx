@@ -33,7 +33,10 @@ export const GameSetup = () => {
     sendMessage({ type: WSEvents.EventQuitGame, payload: null });
   };
 
-  const handleLeaveRoom = () => {};
+  const handleLeaveRoom = (roomID: string) => {
+    setIsLoading(false);
+    sendMessage({ type: WSEvents.EventQuitGame, payload: null });
+  };
 
   const handleGoToMainMenu = () => {
     dispatch({ type: "CHANGE_TIMELINE", payload: Timeline.Menu });
@@ -64,7 +67,7 @@ export const GameSetup = () => {
 
   if (!game) {
     return (
-      <LoaderWrapper show={true}>
+      <LoaderWrapper $show={true}>
         <LoaderContainer>
           <LoaderCancelButton onClick={handleGoToMainMenu}>
             Main menu
@@ -76,10 +79,10 @@ export const GameSetup = () => {
 
   if (game.status === GameStatus.WaitingForOpponent) {
     return (
-      <LoaderWrapper show={true}>
+      <LoaderWrapper $show={true}>
         <LoaderContainer>
           <div>Waiting for player to join room...</div>
-          <LoaderCancelButton onClick={handleLeaveRoom}>
+          <LoaderCancelButton onClick={() => handleLeaveRoom(game.roomID)}>
             Leave room
           </LoaderCancelButton>
         </LoaderContainer>
@@ -109,12 +112,12 @@ export const GameSetup = () => {
                 return (
                   <Cell
                     key={i}
-                    position=""
-                    board="friendly"
-                    highlight={cell === "Sunk"}
-                    cursor={"pointer"}
-                    timeline={timeline}
-                    shot={true}
+                    $position=""
+                    $board="friendly"
+                    $highlight={cell === "Sunk"}
+                    $cursor={"pointer"}
+                    $timeline={timeline}
+                    $shot={true}
                   />
                 );
               });
@@ -123,7 +126,7 @@ export const GameSetup = () => {
         </SetupGridContainer>
       </GridOverlayContainer>
       {
-        <LoaderWrapper show={loading}>
+        <LoaderWrapper $show={loading}>
           <LoaderContainer>
             <div>Loading...</div>
             <LoaderCancelButton onClick={handleCancel}>

@@ -18,12 +18,12 @@ const fillCells = (
     row.map((cell, j) => (
       <Cell
         key={`${i}-${j}`}
-        position={""}
-        highlight={cell === CellState.Ship}
-        timeline={timeline}
-        board="enemy"
-        shot={cell !== CellState.Empty}
-        cursor={cell === CellState.Empty ? "crosshair" : "not-allowed"}
+        $position={""}
+        $highlight={cell === CellState.Ship}
+        $timeline={timeline}
+        $board="enemy"
+        $shot={cell !== CellState.Empty}
+        $cursor={cell === CellState.Empty ? "crosshair" : "not-allowed"}
         onClick={() => _fn(i, j)}
       >
         {cell !== CellState.Empty && (
@@ -55,7 +55,7 @@ export const EnemyWatersGrid = () => {
   };
 
   return (
-    <WatersContainer row="3">
+    <WatersContainer $row="3">
       <SetupGridContainer>
         <GameBoardGrid>
           {player.fleet.map((ship) =>

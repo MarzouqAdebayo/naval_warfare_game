@@ -6,40 +6,45 @@ import {
 import { useGameContext } from "../../GameController";
 import { FriendlyWatersGrid } from "./FriendlyWatersGrid";
 import { EnemyWatersGrid } from "./EnemyWatersGrid";
-//import { useState } from "react";
 import Announcement from "./Announcement";
+import { Timeline } from "../../types";
 
 export const GameStart = () => {
   const {
+    dispatch,
     state: { game },
   } = useGameContext();
-  //const [showAnn, setShowAnn] = useState(false);
 
-  const handleAction = () => {};
+  const handleAction = () => {
+    dispatch({
+      type: "CHANGE_TIMELINE_AND_RESET_GAME",
+      payload: Timeline.Menu,
+    });
+  };
 
   let message = "Welcome to battleship";
   if (game) {
     message = game.message;
   }
-  const show = true;
 
   return (
     <GameStartContainer>
       <HudWindow>{message}</HudWindow>
-      <LabelContainer row="4">
+      <LabelContainer $row="4">
         <h1 style={{ margin: "auto auto 0" }}>Friendly waters</h1>
       </LabelContainer>
-      <LabelContainer row="2">
+      <LabelContainer $row="2">
         <h1 style={{ margin: "auto auto 0" }}>Enemy waters</h1>
       </LabelContainer>
       <FriendlyWatersGrid />
       <EnemyWatersGrid />
-      {show && (
+      {game?.gameOver && (
         <Announcement
-          text="Nice hit!"
+          text={`Game Over, you ${game.currentTurn === game.index ? "win" : "lose"}!!!`}
+          actionButtonText="Go to main menu"
           _fn={handleAction}
-          duration={5000}
-          stayOnScreen={false}
+          duration={10000}
+          stayOnScreen={true}
         />
       )}
     </GameStartContainer>
