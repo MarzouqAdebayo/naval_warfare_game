@@ -1,12 +1,13 @@
 package db
 
 import (
+	"fmt"
 	"log"
 	"os"
 
+	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"github.com/joho/godotenv"
 )
 
 // var DB *gorm.DB
@@ -22,7 +23,7 @@ func Init() (*Database, error) {
 
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
-		return nil, fmt.Error("DATABASE_URL environment variable is not set")
+		return nil, fmt.Errorf("DATABASE_URL environment variable is not set")
 	}
 
 	// Open a connection to the database

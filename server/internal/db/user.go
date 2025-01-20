@@ -16,7 +16,7 @@ func (db *Database) SaveUser(username string) (uuid.UUID, error) {
 	`
 	err := db.Conn.Raw(query, username).Scan(&userID).Error
 	if err != nil {
-		return 0, fmt.Errorf("failed to save user: %w", err)
+		return userID, fmt.Errorf("failed to save user: %w", err)
 	}
 	return userID, nil
 }

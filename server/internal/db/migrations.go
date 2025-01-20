@@ -5,7 +5,7 @@ import (
 )
 
 // Migrate runs database migrations
-func Migrate(db *Database) {
+func Migrate(db *Database) error {
 	if err := db.Conn.AutoMigrate(&User{}); err != nil {
 		log.Printf("failed to migrate database: %v", err)
 		return err
@@ -13,4 +13,3 @@ func Migrate(db *Database) {
 	log.Println("Database migration completed successfully.")
 	return nil
 }
-
