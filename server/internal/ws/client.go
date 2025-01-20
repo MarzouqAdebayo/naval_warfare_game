@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	db "server/internal/db"
 )
 
 // Client represents a connected WebSocket client
@@ -19,6 +20,7 @@ type Client struct {
 	isAlive  bool
 	userData map[string]interface{} // Store custom user data
 	lastPing time.Time
+	db	 *db.Database
 }
 
 func (c *Client) readPump() {
