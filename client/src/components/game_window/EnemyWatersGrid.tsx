@@ -1,6 +1,6 @@
 import { useGameContext } from "../../GameController";
 import shipTypes from "../../helpers/shipTypes";
-import { CellState, Player, Timeline } from "../../types";
+import { CellState, Player, Timeline, WSEvents } from "../../types";
 import ShotMarker from "../icons/ShotMarker";
 import {
   Cell,
@@ -51,7 +51,7 @@ export const EnemyWatersGrid = () => {
       attackerIndex: game.index,
       attackPosition: { X: x, Y: y },
     };
-    sendMessage({ type: "attack", payload });
+    sendMessage({ type: WSEvents.EventAttack, payload });
   };
 
   return (

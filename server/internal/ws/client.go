@@ -56,6 +56,8 @@ func (c *Client) readPump() {
 			FindGameEventHandler(c)
 		case EventPlaceShip:
 			PlaceShipEventHandler(evt, c)
+		case EventShipReady:
+			ShipReadyEventHandler(evt, c)
 		case EventQuitGame:
 			QuitGameEventHandler(evt, c)
 		case EventAttack:

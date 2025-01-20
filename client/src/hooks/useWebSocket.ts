@@ -1,11 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useReducer } from "react";
 import { Action } from "../reducer";
-import {
-  GameData,
-  RandomShipPlacementPayload,
-  Timeline,
-  WSEvents,
-} from "../types";
+import { GameData, RandomShipPlacementPayload, WSEvents } from "../types";
 
 export interface WebSocketMessage<T = unknown> {
   type: WSEvents;
@@ -28,6 +23,15 @@ export enum ConnectionStatus {
   CLOSED = 3,
 }
 
+export function connectionStatusString(status: ConnectionStatus) {
+  return {
+    [ConnectionStatus.CONNECTING]: "Connecting",
+    [ConnectionStatus.OPEN]: "Connected",
+    [ConnectionStatus.CLOSING]: "Disconnecting",
+    [ConnectionStatus.CLOSED]: "Disconnected",
+  }[status];
+}
+
 export const useWebSocket = <T = unknown, U = unknown>(
   url: string,
   reducer: (state: U, action: Action) => U,
@@ -47,7 +51,6 @@ export const useWebSocket = <T = unknown, U = unknown>(
     reducer,
     initialState instanceof Function ? initialState() : initialState,
   );
-  const [data, setData] = useState<WebSocketMessage<T> | null>(null);
   const [status, setStatus] = useState<ConnectionStatus>(
     ConnectionStatus.CLOSED,
   );
@@ -61,18 +64,14 @@ export const useWebSocket = <T = unknown, U = unknown>(
         const data: WebSocketMessage<T> = JSON.parse(event.data);
         switch (data.type) {
           case WSEvents.EventFindGameWaiting:
-            // TODO Returns a room ID with intial room data
-            // TODO Recieve room data from server
             dispatch({
-              type: "SET_GAME_STATE",
+              type: "INITIALIZE_NEW_ROOM",
               payload: data.payload as { roomID: string },
             });
-            // Dispatch timeline instantly
-            dispatch({ type: "CHANGE_TIMELINE", payload: Timeline.Setup });
             break;
           case WSEvents.EventFindGameStart:
             dispatch({
-              type: "SET_SERVER_GAME_STATE",
+              type: "FIND_GAME_START",
               payload: data.payload as GameData,
             });
             break;
@@ -82,14 +81,19 @@ export const useWebSocket = <T = unknown, U = unknown>(
               payload: data.payload as RandomShipPlacementPayload,
             });
             break;
+          case WSEvents.EventGameStart:
+            dispatch({
+              type: "GAME_START",
+              payload: data.payload as GameData,
+            });
+            break;
           case WSEvents.EventBroadcastAttack:
             dispatch({
-              type: "SET_SERVER_GAME_STATE",
+              type: "BROADCAST_ATTACK",
               payload: data.payload as GameData,
             });
             break;
           default:
-            setData(data);
             break;
         }
         if (onMessage) onMessage(data);
@@ -175,7 +179,7 @@ export const useWebSocket = <T = unknown, U = unknown>(
     state,
     dispatch,
     status,
-    data,
+    connectionString: connectionStatusString(status),
     sendMessage,
     reconnect,
     isConnected: status === ConnectionStatus.OPEN,

@@ -113,6 +113,7 @@ body {
     opacity: 1;
   }
 }
+
 @keyframes fadeout {
   0% {
     opacity: 1;
@@ -121,6 +122,7 @@ body {
     opacity: 0;
   }
 }
+
 @keyframes rise {
   0% {
     transform: translateY(100%);
@@ -142,5 +144,20 @@ body {
   }
   90% {
     transform: translateY(0);
+  }
+}
+
+@keyframes fadeinlogo {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
   }
 }

@@ -13,11 +13,22 @@ import (
 	g "server/internal/game"
 )
 
+type GameStatus int
+
+const (
+	WaitingForOpponent = iota
+	SettingShips
+	GameStart
+	GameOver
+)
+
 // GameRoom represents the BattleshipGame with extra info
 type GameRoom struct {
 	id      string
 	clients []*Client
 	g.BattleshipGame
+	gameStatus    GameStatus
+	readinessIncr float32
 }
 
 // Hub manages all connected clients

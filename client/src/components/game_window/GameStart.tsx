@@ -6,34 +6,26 @@ import {
 import { useGameContext } from "../../GameController";
 import { FriendlyWatersGrid } from "./FriendlyWatersGrid";
 import { EnemyWatersGrid } from "./EnemyWatersGrid";
-
-const enum shipTypes {
-  Carrier = "Carrier",
-  Battleship = "Battleship",
-  Cruiser = "Cruiser",
-  Submarine = "Submarine",
-  Destroyer = "Destroyer",
-}
-
-const ships = [
-  { Type: shipTypes.Carrier, Size: 5, Hits: 0, Sunk: false },
-  { Type: shipTypes.Battleship, Size: 4, Hits: 0, Sunk: false },
-  { Type: shipTypes.Cruiser, Size: 3, Hits: 0, Sunk: false },
-  { Type: shipTypes.Submarine, Size: 3, Hits: 0, Sunk: false },
-  { Type: shipTypes.Destroyer, Size: 2, Hits: 0, Sunk: false },
-];
+//import { useState } from "react";
+import Announcement from "./Announcement";
 
 export const GameStart = () => {
-  const { sendMessage } = useGameContext();
+  const {
+    state: { game },
+  } = useGameContext();
+  //const [showAnn, setShowAnn] = useState(false);
+
+  const handleAction = () => {};
+
+  let message = "Welcome to battleship";
+  if (game) {
+    message = game.message;
+  }
+  const show = true;
+
   return (
     <GameStartContainer>
-      <button
-        onClick={() => sendMessage({ type: "find_game", payload: null })}
-        style={{ position: "absolute", zIndex: 50, top: 0, left: 0 }}
-      >
-        sendM
-      </button>
-      <HudWindow>Hi</HudWindow>
+      <HudWindow>{message}</HudWindow>
       <LabelContainer row="4">
         <h1 style={{ margin: "auto auto 0" }}>Friendly waters</h1>
       </LabelContainer>
@@ -42,6 +34,14 @@ export const GameStart = () => {
       </LabelContainer>
       <FriendlyWatersGrid />
       <EnemyWatersGrid />
+      {show && (
+        <Announcement
+          text="Nice hit!"
+          _fn={handleAction}
+          duration={5000}
+          stayOnScreen={false}
+        />
+      )}
     </GameStartContainer>
   );
 };
