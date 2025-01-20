@@ -272,8 +272,18 @@ func ParseEvent(data []byte) (Event, error) {
 func SetUserDataEventHandler(e Event, c *Client) {
 	c.hub.mu.Lock()
 	defer c.hub.mu.Unlock()
+
 	if userEvent, ok := e.(*SetUserDataEvent); ok {
-		c.userData["name"] = userEvent.Payload.Username
+		username := userEvent.Payload.Username
+
+		userID, err := c.db.SaveUser(username)
+		if err != nil {
+			fmt.Printf("error saving user: %v\n", err)
+			return
+		}
+		c.userData["id"] = userID
+		c.userData["name"] = username
+		fmt.Printf("User %s (ID: %d) has been saved and updated in client.\n", username, userID)
 	}
 }
 
