@@ -23,6 +23,20 @@ type Client struct {
 	db	 *db.Database
 }
 
+func NewClient(
+	hub *Hub, conn *websocket.Conn, dbClient *db.Database,
+) *Client {
+	return &Client{
+		hub:		hub,
+		conn:		conn,
+		send:		make(chan []byte, 256),
+		isAlive:	true,
+		userData:	make(map[string]interface{}),
+		lastPing:	time.Now(),
+		db: 		dbClient,
+	}
+}
+
 func (c *Client) readPump() {
 	defer func() {
 		c.hub.unregister <- c

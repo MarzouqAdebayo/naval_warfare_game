@@ -3,6 +3,7 @@ package ws
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 
 	g "server/internal/game"
 )
@@ -306,6 +307,11 @@ func ParseEvent(data []byte) (Event, error) {
 func SetUserDataEventHandler(e Event, c *Client) {
 	c.hub.mu.Lock()
 	defer c.hub.mu.Unlock()
+
+	if c.db == nil {
+		log.Println("Database is not initialized in Client")
+		return
+	}
 
 	if userEvent, ok := e.(*SetUserDataEvent); ok {
 		username := userEvent.Payload.Username

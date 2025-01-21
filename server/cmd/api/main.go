@@ -15,14 +15,16 @@ func main() {
 	ctx, cancel := context.WithCancel(rootCtx)
 	defer cancel()
 
-	database, err := db.InitializeDBClient()
+	dbClient, err := db.InitializeDBClient()
 	if err != nil {
 		log.Fatalf("Error initializing the database: %v", err)
 	}
 
-	db.Migrate(database)
+	if err := db.Migrate(dbClient); err != nil {
+		log.Fatalf("Error migrating the database: %v", err)
+	}
 
-	apiHandler(ctx)
+	apiHandler(ctx, dbClient)
 
 	port := ":5000"
 	log.Printf("Server starting on %s", port)
@@ -32,14 +34,14 @@ func main() {
 	}
 }
 
-func apiHandler(ctx context.Context) {
+func apiHandler(ctx context.Context, dbClient *db.Database) {
 	hub := ws.NewHub()
 	go hub.Run()
 
 	http.Handle("/", http.FileServer(http.Dir("../../views/")))
 
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		ws.ServeWs(hub, w, r)
+		ws.ServeWs(hub, w, r, dbClient)
 	})
 
 	http.HandleFunc("/debug", func(w http.ResponseWriter, r *http.Request) {
