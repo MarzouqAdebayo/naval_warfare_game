@@ -318,12 +318,13 @@ func SetUserDataEventHandler(e Event, c *Client) {
 
 		userID, err := c.db.SaveUser(username)
 		if err != nil {
-			fmt.Printf("error saving user: %v\n", err)
+			fmt.Printf("error saving user to database: %v\n", err)
 			return
 		}
 		c.userData["id"] = userID
 		c.userData["name"] = username
 		fmt.Printf("User %s (ID: %d) has been saved and updated in client.\n", username, userID)
+		fmt.Printf("User %s has been saved and updated in client.\n", username)
 	}
 }
 
