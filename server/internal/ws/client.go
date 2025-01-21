@@ -20,7 +20,7 @@ type Client struct {
 	isAlive  bool
 	userData map[string]interface{} // Store custom user data
 	lastPing time.Time
-	db	 *db.Database
+	db       *db.Database
 }
 
 func (c *Client) readPump() {

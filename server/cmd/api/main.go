@@ -19,7 +19,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error initializing the database: %v", err)
 	}
-
 	db.Migrate(database)
 
 	apiHandler(ctx)
