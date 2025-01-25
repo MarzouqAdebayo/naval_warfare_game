@@ -27,13 +27,13 @@ func NewClient(
 	hub *Hub, conn *websocket.Conn, dbClient *db.Database,
 ) *Client {
 	return &Client{
-		hub:		hub,
-		conn:		conn,
-		send:		make(chan []byte, 256),
-		isAlive:	true,
-		userData:	make(map[string]interface{}),
-		lastPing:	time.Now(),
-		db: 		dbClient,
+		hub:      hub,
+		conn:     conn,
+		send:     make(chan []byte, 256),
+		isAlive:  true,
+		userData: make(map[string]interface{}),
+		lastPing: time.Now(),
+		db:       dbClient,
 	}
 }
 

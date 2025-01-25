@@ -20,9 +20,9 @@ func main() {
 		log.Fatalf("Error initializing the database: %v", err)
 	}
 
-	if err := db.Migrate(dbClient); err != nil {
-		log.Fatalf("Error migrating the database: %v", err)
-	}
+	// if err := db.Migrate(dbClient); err != nil {
+	// 	log.Fatalf("Error migrating the database: %v", err)
+	// }
 
 	apiHandler(ctx, dbClient)
 

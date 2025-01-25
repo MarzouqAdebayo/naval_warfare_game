@@ -6,8 +6,8 @@ import (
 
 func TestPlaceShips(t *testing.T) {
 	t.Run("should set ship on board horizontally", func(t *testing.T) {
-		boardSize := 4
-		shipSize := 4
+		boardSize := 5
+		shipSize := 5
 		player := &PlayerGameStruct{}
 		player.Board = GenerateEmptyBoard(boardSize)
 		ship := &Ship{Type: Destroyer, Size: shipSize}
@@ -24,8 +24,8 @@ func TestPlaceShips(t *testing.T) {
 	})
 
 	t.Run("should set ship on board vertically", func(t *testing.T) {
-		boardSize := 4
-		shipSize := 4
+		boardSize := 5
+		shipSize := 5
 		player := &PlayerGameStruct{}
 		player.Board = GenerateEmptyBoard(boardSize)
 		ship := &Ship{Type: Destroyer, Size: shipSize}
@@ -64,7 +64,7 @@ func TestPlaceShips(t *testing.T) {
 
 func TestGenerateAndPlaceShips(t *testing.T) {
 	t.Run("should randomly place ships on board", func(t *testing.T) {
-		boardSize := 5
+		boardSize := 10
 		player := &PlayerGameStruct{}
 		player.Board = GenerateEmptyBoard(boardSize)
 		player.GenerateAndPlaceShips()

@@ -1,6 +1,6 @@
-.PHONY: server-test server client all
+.PHONY: server all
 
-all: server client
+all: server
 
 client:
 	cd client && npm run dev
@@ -12,9 +12,9 @@ server-game-test:
 	cd server/internal/game && go test
 
 setup:
+	cd server && go mod tidy
 	cd client && npm install
-	go mod tidy
 
 clean:
 	cd client && npm run clean
-	go clean
+	cd server && go clean

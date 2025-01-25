@@ -20,8 +20,8 @@ var game *BattleshipGame
 // }
 
 func setup() func() {
-	boardSize = 4
-	shipSize = 4
+	boardSize = 5
+	shipSize = 5
 
 	player1 = &PlayerGameStruct{Index: 0, RemainingShips: 1}
 	player1.Board = GenerateEmptyBoard(boardSize)
@@ -119,7 +119,7 @@ func TestAttack(t *testing.T) {
 				game.Attack(game.CurrentTurn, Position{X: 0, Y: j})
 				j++
 			}
-			if i == 4 || j == 4 {
+			if i == 5 || j == 5 {
 				break
 			}
 		}
